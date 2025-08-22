@@ -1,0 +1,260 @@
+[
+  {
+    "step": "Read and analyze pom.xml to verify dependencies and backend structure",
+    "sub_steps": [
+      "Open /home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/pom.xml and read all dependencies.",
+      "Confirm existence of Spring Boot Web, JPA, MySQL, Validation, Lombok dependencies.",
+      "Check the directory structure for src/main/java/com/examly/springapp for placement of entities, repositories, services, and controllers."
+    ],
+    "files_to_add": [],
+    "files_to_edit": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/pom.xml"
+    ],
+    "description": "Ensures all required backend dependencies are present and sets up context for proper backend implementation."
+  },
+  {
+    "step": "Implement Room and Booking entity classes",
+    "sub_steps": [
+      "Create Room.java entity with required fields, JPA annotations, getters, setters, and Lombok annotations.",
+      "Create Booking.java entity with required fields and relationships (i.e., ManyToOne to Room), with correct JPA and Lombok annotations.",
+      "Include validation annotations on Booking fields (for email, dates, non-null constraints, etc)."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/model/Room.java",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/model/Booking.java"
+    ],
+    "files_to_edit": [],
+    "description": "Creates core data structures for Room and Booking with appropriate JPA and validation configuration to support persistence and validation logic."
+  },
+  {
+    "step": "Implement Repository interfaces for Room and Booking",
+    "sub_steps": [
+      "Create RoomRepository that extends JpaRepository for Room entity.",
+      "Create BookingRepository that extends JpaRepository for Booking entity."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/repository/RoomRepository.java",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/repository/BookingRepository.java"
+    ],
+    "files_to_edit": [],
+    "description": "Defines database access layer for Room and Booking entities to support CRUD and custom queries."
+  },
+  {
+    "step": "Implement RoomService and BookingService with business logic",
+    "sub_steps": [
+      "Create RoomService with methods to fetch all rooms, fetch available rooms, and fetch room by id.",
+      "Create BookingService to handle booking creation (validations, price calculation, default status, createdAt), booking status updates (business rules), and booking fetching.",
+      "Add error handling for entity not found, validation errors, and business rule violations.",
+      "Update room availability status in business logic where necessary."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/service/RoomService.java",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/service/BookingService.java"
+    ],
+    "files_to_edit": [],
+    "description": "Implements business logic for room management and booking lifecycle including all requirement validations."
+  },
+  {
+    "step": "Implement RoomController and BookingController REST APIs",
+    "sub_steps": [
+      "Create RoomController exposing /api/rooms, /api/rooms/available, and /api/rooms/{roomId} GET endpoints with required responses and error handling.",
+      "Create BookingController exposing /api/bookings (POST, GET), /api/bookings/{bookingId} (GET), and /api/bookings/{bookingId}/status (PUT) with all validation, business rules, and correct error messages.",
+      "Handle custom error responses as per requirements for NOT FOUND and BAD REQUEST scenarios."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/controller/RoomController.java",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/controller/BookingController.java"
+    ],
+    "files_to_edit": [],
+    "description": "Exposes RESTful endpoints for frontend and test cases, handling proper mapping of business logic and error scenarios."
+  },
+  {
+    "step": "Implement global Exception handling for API error messages",
+    "sub_steps": [
+      "Create a @ControllerAdvice class to handle and customize error messages for NotFound, Validation, and all runtime exceptions.",
+      "Follow exact error message formats specified in requirements (e.g., JSON {\"message\": \"...\"})."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/exception/GlobalExceptionHandler.java"
+    ],
+    "files_to_edit": [],
+    "description": "Ensures API returns errors in required formats for test validations and consistent frontend consumption."
+  },
+  {
+    "step": "Configure CORS for React integration and MySQL connectivity",
+    "sub_steps": [
+      "Update backend configuration to allow CORS for http://localhost:3000 requests, allowing appropriate HTTP methods.",
+      "Validate /home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/resources/application.properties for correct MySQL settings (already generated)."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/java/com/examly/springapp/config/CorsConfig.java"
+    ],
+    "files_to_edit": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/main/resources/application.properties"
+    ],
+    "description": "Prepares backend for frontend API integration and ensures secure, correct cross-origin support."
+  },
+  {
+    "step": "Implement ALL backend (JUnit) test cases as specified in the Test Cases JSON",
+    "sub_steps": [
+      "For each test case, implement exact scenario using @SpringBootTest or WebMvcTest as appropriate.",
+      "testGetAllRooms: Validate GET /api/rooms returns all created rooms; assertions on room properties.",
+      "testGetAvailableRooms: Validate GET /api/rooms/available returns only rooms where available=true.",
+      "testCreateBooking: Validate POST /api/bookings creates booking with correct price calculation, status, and createdAt.",
+      "testBookingValidation: Check POST /api/bookings with invalid input (bad email, bad date) returns 400 and correct error message.",
+      "testUpdateBookingStatus: Validate PUT /api/bookings/{id}/status updates booking and sets room available=false, also validates NOT FOUND and error cases.",
+      "Create or edit test suite in src/test/java/com/examly/springapp/controllers or corresponding test paths."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/test/java/com/examly/springapp/controller/RoomControllerTest.java",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/springapp/src/test/java/com/examly/springapp/controller/BookingControllerTest.java"
+    ],
+    "files_to_edit": [],
+    "description": "Covers all backend functionality, error cases, and API behaviors specified by requirements and ensures stable backend for frontend use."
+  },
+  {
+    "step": "Compile and test backend code (Spring Boot with JUnit)",
+    "sub_steps": [
+      "Execute 'mvn clean compile -q -Dspring.main.banner-mode=off' to compile.",
+      "Execute 'mvn test -q -Dspring.main.banner-mode=off' to run all backend tests.",
+      "Resolve any compilation or test run errors before proceeding."
+    ],
+    "files_to_add": [],
+    "files_to_edit": [],
+    "description": "Ensures backend is completely functional and all contract and error cases are honored before proceeding to frontend implementation."
+  },
+  {
+    "step": "Read and analyze package.json to verify frontend dependencies and React structure",
+    "sub_steps": [
+      "Open /home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/package.json and confirm existence of React, react-dom, axios or fetch, and testing libraries.",
+      "Check for existence of src/App.js and directory src/components.",
+      "Plan utilities, API helpers, and folder structure for new components."
+    ],
+    "files_to_add": [],
+    "files_to_edit": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/package.json"
+    ],
+    "description": "Validates frontend foundation, dependency choices, and establishes context for component creation."
+  },
+  {
+    "step": "Implement API utility and styling constants (CSS variables, utils/helpers.js)",
+    "sub_steps": [
+      "Create api.js utility for backend calls using fetch or axios, centralize API URL ('http://localhost:8080').",
+      "Create constants.js or similar for colors, status-color mapping, and API endpoints.",
+      "Create or update index.css or App.css to include required CSS variables as dictated by design guidelines."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/utils/api.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/utils/constants.js"
+    ],
+    "files_to_edit": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/index.css",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/App.css"
+    ],
+    "description": "Centralizes all backend API access and core styling, ensuring consistent design and API usage for all React components."
+  },
+  {
+    "step": "Implement RoomListing component and test file",
+    "sub_steps": [
+      "Create RoomListing.js to fetch and display all rooms, with filter for available only.",
+      "Implement correct display of room details, status badges, and 'Book Now' button state based on availability.",
+      "Apply required layout, design, and color guidelines.",
+      "Immediately implement RoomListing.test.js to cover: displaying rooms, toggling available-only filter, button state per availability (as specified by test cases)."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/RoomListing.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/RoomListing.test.js"
+    ],
+    "files_to_edit": [],
+    "description": "Delivers core room browsing functionality and meets all described visual/state requirements. Supports the testRoomListingComponent test case."
+  },
+  {
+    "step": "Implement BookingForm component and test file",
+    "sub_steps": [
+      "Create BookingForm.js for booking an available room; includes fields for name, email, check-in/out dates.",
+      "Implement all input, validation, error handling, and display of required error/success messages.",
+      "Apply responsive, accessible styling and status feedback.",
+      "Create BookingForm.test.js with all required validation, error and success scenarios (empty fields, bad email, date orders, form submission correctness as per test cases)."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/BookingForm.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/BookingForm.test.js"
+    ],
+    "files_to_edit": [],
+    "description": "Implements user booking flow and robust form validation with inline error and success messages, supporting testBookingFormValidation."
+  },
+  {
+    "step": "Implement BookingList component and test file",
+    "sub_steps": [
+      "Create BookingList.js to fetch and display all bookings with status color coding (yellow/pending, green/approved, red/rejected).",
+      "Ensure display aligns with required fields: ID, room, guest, dates, total, status.",
+      "Implement correct mapping of statuses to colors.",
+      "Create BookingList.test.js covering display correctness for all status types and bookings, aligning with provided test case scenarios."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/BookingList.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/BookingList.test.js"
+    ],
+    "files_to_edit": [],
+    "description": "Enables browsing of all booking records with clear, required visual cues for booking statuses. Satisfies testBookingListComponent."
+  },
+  {
+    "step": "Implement AdminPanel component and test file",
+    "sub_steps": [
+      "Create AdminPanel.js to fetch and display only pending bookings, each with Approve/Reject buttons.",
+      "Implement API calls for status update, inline confirmation messages, proper button and status state updates.",
+      "Apply layout and color requirements per design guidelines.",
+      "Create AdminPanel.test.js to simulate backend, validate button logic, API call, and feedback scenario coverage as required by the test cases."
+    ],
+    "files_to_add": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/AdminPanel.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/AdminPanel.test.js"
+    ],
+    "files_to_edit": [],
+    "description": "Presents admin with actionable, testable approval dashboard and aligns with testAdminPanelComponent."
+  },
+  {
+    "step": "Integrate all components into App.js and ensure UI is navigable",
+    "sub_steps": [
+      "Edit App.js to import and lay out RoomListing, BookingForm, BookingList, AdminPanel according to navigation or unified dashboard pattern.",
+      "Ensure all components interact as required (e.g., BookingForm refreshes BookingList), and data flows are correct.",
+      "Apply app-wide styling using CSS variable system and required design patterns."
+    ],
+    "files_to_add": [],
+    "files_to_edit": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/App.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/App.css"
+    ],
+    "description": "Completes application wiring and layout, ensuring navigation and component interaction meet specifications."
+  },
+  {
+    "step": "Implement ALL frontend (Jest) test cases as specified in Test Cases JSON",
+    "sub_steps": [
+      "testRoomListingComponent (RoomListing.test.js): Validate rooms display, filtering, and button status.",
+      "testBookingFormValidation (BookingForm.test.js): Validate field errors, invalid email, date validation, valid form submission.",
+      "testBookingListComponent (BookingList.test.js): Validate bookings list display, status color mapping, booking details.",
+      "testAdminPanelComponent (AdminPanel.test.js): Validate pending bookings display, Approve/Reject logic, API mocking and feedback.",
+      "Implement tests to precisely match descriptions and component features, mock fetch/axios/API calls as needed."
+    ],
+    "files_to_add": [],
+    "files_to_edit": [
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/RoomListing.test.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/BookingForm.test.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/BookingList.test.js",
+      "/home/coder/project/workspace/question_generation_service/solutions/a0eed849-cedb-4564-84a8-96bdf65687f9/reactapp/src/components/AdminPanel.test.js"
+    ],
+    "description": "Ensures the frontend works as intended, matches UI and business logic requirements, and passes all provided Jest test cases."
+  },
+  {
+    "step": "Install dependencies, lint, build, and run all React frontend tests (Jest)",
+    "sub_steps": [
+      "Run 'npm install' to install all frontend dependencies.",
+      "Run 'npm run build' to ensure successful compilation.",
+      "Run 'npx eslint src/ --fix' to lint and auto-fix code style and errors.",
+      "Run 'npm run test:ci' to execute all Jest and React Testing Library tests in CI mode."
+    ],
+    "files_to_add": [],
+    "files_to_edit": [],
+    "description": "Finalizes frontend with all quality checks and ensures all required behaviors are validated via Jest tests."
+  }
+]
