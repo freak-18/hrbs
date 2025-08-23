@@ -8,7 +8,6 @@ import java.util.List;
 
 @Service
 public class RoomService {
-
     private final RoomRepository roomRepository;
 
     public RoomService(RoomRepository roomRepository) {
@@ -19,12 +18,12 @@ public class RoomService {
         return roomRepository.findAll();
     }
 
-    public List<Room> getAvailableRooms() {
-        return roomRepository.findByAvailableTrue();
-    }
-
     public Room getRoomById(Long id) {
         return roomRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Room not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+    }
+
+    public Room saveRoom(Room room) {
+        return roomRepository.save(room);
     }
 }
