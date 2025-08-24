@@ -18,9 +18,13 @@ public class RoomService {
         return roomRepository.findAll();
     }
 
+    public List<Room> getAvailableRooms() {
+        return roomRepository.findByAvailableTrue();
+    }
+
     public Room getRoomById(Long id) {
         return roomRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Room not found"));
+                .orElseThrow(() -> new RuntimeException("Room not found with id: " + id));
     }
 
     public Room saveRoom(Room room) {

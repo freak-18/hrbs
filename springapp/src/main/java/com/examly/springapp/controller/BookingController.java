@@ -3,58 +3,82 @@ package com.examly.springapp.controller;
 import com.examly.springapp.model.Booking;
 import com.examly.springapp.model.Room;
 import com.examly.springapp.service.BookingService;
+import com.examly.springapp.repository.RoomRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = {"http://localhost:8081","http://localhost:3000"})
+@CrossOrigin(origins = "*")
 public class BookingController {
 
     private final BookingService bookingService;
-    
-    public BookingController(BookingService bookingService) {
+    private final RoomRepository roomRepository;
+
+    public BookingController(BookingService bookingService, RoomRepository roomRepository) {
         this.bookingService = bookingService;
+        this.roomRepository = roomRepository;
     }
 
-    // Create Booking
-    @PostMapping
-    public Map<String, Object> createBooking(@RequestBody Booking bookingBody) {
-        Booking saved = bookingService.createBooking(bookingBody);
+@PostMapping
+public ResponseEntity<?> createBooking(@RequestBody Map<String, Object> payload) {
+try {
+Long roomId = Long.valueOf(payload.get("roomId").toString());
+String guestName = payload.get("guestName").toString();
+String guestEmail = payload.get("guestEmail").toString();
+LocalDate checkIn = LocalDate.parse(payload.get("checkInDate").toString());
+LocalDate checkOut = LocalDate.parse(payload.get("checkOutDate").toString());
 
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("bookingId", saved.getBookingId());
-        resp.put("status", saved.getStatus());
-        resp.put("totalPrice", saved.getTotalPrice());
-        return resp;
-    }
+Room room = roomRepository.findById(roomId)
+.orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
 
-    // Get All Bookings
-    @GetMapping
-    public List<Map<String, Object>> getAllBookings() {
-        return bookingService.getAllBookings().stream().map(b -> {
-            Map<String, Object> m = new HashMap<>();
-            m.put("bookingId", b.getBookingId());
-            m.put("guestName", b.getGuestName());
+Booking booking = new Booking();
+booking.setRoom(room);
+booking.setGuestName(guestName);
+booking.setGuestEmail(guestEmail);
+booking.setCheckInDate(checkIn);
+booking.setCheckOutDate(checkOut);
 
-            Map<String, Object> roomMap = new HashMap<>();
-            Room r = b.getRoom(); // Directly from booking
-            roomMap.put("roomNumber", r != null ? r.getRoomNumber() : null);
+Booking saved = bookingService.createBooking(booking);
+return ResponseEntity.status(201).body(saved);
 
-            m.put("room", roomMap);
-            m.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
-            m.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate().toString() : null);
-            m.put("status", b.getStatus());
-            return m;
-        }).toList();
-    }
+} catch (RuntimeException e) {
+return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+}
+}
 
-    // Update Booking Status
-    @PutMapping("/{id}/status")
-    public Booking updateStatus(@PathVariable Long id, @RequestParam String status) {
-        return bookingService.updateStatus(id, status);
-    }
+@GetMapping
+public List<Booking> getAllBookings() {
+return bookingService.getAllBookings();
+}
+
+@GetMapping("/{id}")
+public ResponseEntity<?> getBookingById(@PathVariable Long id) {
+try {
+return ResponseEntity.ok(bookingService.getBookingById(id));
+} catch (RuntimeException e) {
+return ResponseEntity.status(404).body(new ErrorResponse(e.getMessage()));
+}
+}
+
+@PutMapping("/{id}/status")
+public ResponseEntity<?> updateBookingStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+String status = body.get("status");
+try {
+return ResponseEntity.ok(bookingService.updateBookingStatus(id, status));
+} catch (RuntimeException e) {
+String msg = e.getMessage();
+if (msg.contains("not found")) {
+return ResponseEntity.status(404).body(new ErrorResponse(msg));
+} else {
+return ResponseEntity.badRequest().body(new ErrorResponse(msg));
+}
+}
+}
+
+record ErrorResponse(String message) {}
 }
