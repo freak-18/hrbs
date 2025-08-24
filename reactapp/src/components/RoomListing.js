@@ -1,72 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { getRooms } from '../utils/api';
 
-export default function RoomListing() {
+function RoomListing() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [availableOnly, setAvailableOnly] = useState(false);
-
-  const fetchRooms = (avail = false) => {
-    // Use setTimeout to make state updates async and avoid act warnings
-    setLoading(true);
-    setTimeout(async () => {
-      try {
-        const res = await getRooms(avail);
-        setRooms(res.data || []);
-        setError('');
-      } catch {
-        setRooms([]);
-        setError('Could not load rooms');
-      } finally {
-        setLoading(false);
-      }
-    }, 0);
-  };
+  const [error, setError] = useState(null);
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
   useEffect(() => {
-    fetchRooms();
-  }, []);
+    fetchRooms(showAvailableOnly);
+  }, [showAvailableOnly]);
 
-  const handleToggle = () => {
-    const newVal = !availableOnly;
-    setAvailableOnly(newVal);
-    fetchRooms(newVal);
+  const fetchRooms = async (onlyAvailable) => {
+    setLoading(true);
+    try {
+      const res = await getRooms(onlyAvailable);
+      setRooms(res.data);
+    } catch {
+      setError('Could not load rooms');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <p>Loading rooms...</p>;
-  if (error) return <p>{error}</p>;
-  if (!rooms.length) return <p>No rooms found</p>;
+  if (error) return <p>[Error - You need to specify the message]</p>;
 
   return (
     <div>
       <label>
-        <input type="checkbox" checked={availableOnly} onChange={handleToggle} />
         Show available only
+        <input
+          type="checkbox"
+          onChange={() => setShowAvailableOnly(!showAvailableOnly)}
+        />
       </label>
       <table>
-        <thead>
-          <tr>
-            <th>Number</th>
-            <th>Type</th>
-            <th>Price</th>
-            <th>Capacity</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
         <tbody>
-          {rooms.map((room, index) => (
-            <tr key={room.roomId}>
-              <td>{room.roomNumber}</td>
-              <td>{room.roomType || '-'}</td>
-              <td>{room.price != null ? room.price : '-'}</td>
-              <td>{room.capacity != null ? room.capacity : '-'}</td>
-              <td>{room.available ? 'Available' : 'Unavailable'}</td>
+          {rooms.map(r => (
+            <tr key={r.roomId}>
+              <td>{r.roomNumber}</td>
+              <td>{r.roomType}</td>
+              <td>{r.pricePerNight}</td>
+              <td>{r.capacity}</td>
+              <td>{r.available ? 'Available' : 'Unavailable'}</td>
               <td>
                 <button
-                  data-testid={`book-btn-${index + 1}`}
-                  disabled={!room.available}
+                  data-testid={`book-btn-${r.roomId}`}
+                  disabled={!r.available}
                 >
                   Book Now
                 </button>
@@ -78,3 +59,5 @@ export default function RoomListing() {
     </div>
   );
 }
+
+export default RoomListing;

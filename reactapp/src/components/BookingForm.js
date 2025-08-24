@@ -1,68 +1,90 @@
 import React, { useState } from 'react';
 import { createBooking } from '../utils/api';
 
-export default function BookingForm({ room }) {
+function BookingForm({ room }) {
   const [form, setForm] = useState({
     guestName: '',
     guestEmail: '',
     checkInDate: '',
     checkOutDate: ''
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState([]);
   const [message, setMessage] = useState('');
 
   const validate = () => {
-    const errs = {};
-    if (!form.guestName) errs.guestName = 'Name is required';
-    if (!form.guestEmail) errs.guestEmail = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.guestEmail)) errs.guestEmail = 'Invalid email format';
-    if (!form.checkInDate) errs.checkInDate = 'Check-in is required';
-    if (!form.checkOutDate) errs.checkOutDate = 'Check-out is required';
-    if (form.checkInDate && form.checkOutDate && form.checkInDate > form.checkOutDate) {
-      errs.checkOutDate = 'Check-out date must be after check-in date';
+    let errs = [];
+    if (!form.guestName) errs.push('Name is required');
+    if (!form.guestEmail) errs.push('Email is required');
+    else if (!/\S+@\S+\.\S+/.test(form.guestEmail)) errs.push('Invalid email format');
+    if (!form.checkInDate) errs.push('Check-in is required');
+    if (!form.checkOutDate) errs.push('Check-out is required');
+    if (form.checkInDate && form.checkOutDate &&
+        new Date(form.checkOutDate) <= new Date(form.checkInDate)) {
+      errs.push('Check-out date must be after check-in date');
     }
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return errs;
   };
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    const errs = validate();
+    if (errs.length > 0) {
+      setErrors(errs);
+      setMessage('');
+      return;
+    }
+    setErrors([]);
     try {
       await createBooking({ ...form, roomId: room.roomId });
       setMessage('Booking created successfully');
-      setForm({ guestName: '', guestEmail: '', checkInDate: '', checkOutDate: '' });
     } catch (err) {
       setMessage(err.response?.data?.message || 'Booking failed');
     }
   };
 
   return (
-<form onSubmit={handleSubmit}>
-{message && <p data-testid="form-message">{message}</p>} {/* Added test-id */}
-<div>
-<label>Guest Name</label>
-<input name="guestName" value={form.guestName} onChange={handleChange} />
-{errors.guestName && <span>{errors.guestName}</span>}
-</div>
-<div>
-<label>Guest Email</label>
-<input name="guestEmail" value={form.guestEmail} onChange={handleChange} />
-{errors.guestEmail && <span>{errors.guestEmail}</span>}
-</div>
-<div>
-<label>Check-in</label>
-<input type="date" name="checkInDate" value={form.checkInDate} onChange={handleChange} />
-{errors.checkInDate && <span>{errors.checkInDate}</span>}
-</div>
-<div>
-<label>Check-out</label>
-<input type="date" name="checkOutDate" value={form.checkOutDate} onChange={handleChange} />
-{errors.checkOutDate && <span>{errors.checkOutDate}</span>}
-</div>
+    <form onSubmit={handleSubmit}>
+      {errors.map((err, i) => (
+        <p key={i}>{err}</p>
+      ))}
+      {message && <p>{message}</p>}
+
+      <label htmlFor="guestName">Guest Name</label>
+      <input
+        id="guestName"
+        aria-label="guest name"
+        value={form.guestName}
+        onChange={e => setForm({ ...form, guestName: e.target.value })}
+      />
+
+      <label htmlFor="guestEmail">Guest Email</label>
+      <input
+        id="guestEmail"
+        aria-label="guest email"
+        value={form.guestEmail}
+        onChange={e => setForm({ ...form, guestEmail: e.target.value })}
+      />
+
+      <label htmlFor="checkInDate">Check-in</label>
+      <input
+        type="date"
+        id="checkInDate"
+        aria-label="check-in"
+        value={form.checkInDate}
+        onChange={e => setForm({ ...form, checkInDate: e.target.value })}
+      />
+<label htmlFor="checkOutDate">Check-out</label>
+<input
+type="date"
+id="checkOutDate"
+aria-label="check-out"
+value={form.checkOutDate}
+onChange={e => setForm({ ...form, checkOutDate: e.target.value })}
+/>
+
 <button type="submit">Create Booking</button>
 </form>
 );
 }
+
+export default BookingForm;
