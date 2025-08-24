@@ -26,29 +26,33 @@ public class BookingController {
 
 @PostMapping
 public ResponseEntity<?> createBooking(@RequestBody Map<String, Object> payload) {
-try {
-Long roomId = Long.valueOf(payload.get("roomId").toString());
-String guestName = payload.get("guestName").toString();
-String guestEmail = payload.get("guestEmail").toString();
-LocalDate checkIn = LocalDate.parse(payload.get("checkInDate").toString());
-LocalDate checkOut = LocalDate.parse(payload.get("checkOutDate").toString());
+    try {
+        Long roomId = Long.valueOf(payload.get("roomId").toString());
+        String guestName = payload.get("guestName").toString();
+        String guestEmail = payload.get("guestEmail").toString();
+        LocalDate checkIn = LocalDate.parse(payload.get("checkInDate").toString());
+        LocalDate checkOut = LocalDate.parse(payload.get("checkOutDate").toString());
 
-Room room = roomRepository.findById(roomId)
-.orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
+        Room room = roomRepository.findById(roomId)
+            .orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
 
-Booking booking = new Booking();
-booking.setRoom(room);
-booking.setGuestName(guestName);
-booking.setGuestEmail(guestEmail);
-booking.setCheckInDate(checkIn);
-booking.setCheckOutDate(checkOut);
+        Booking booking = new Booking();
+        booking.setRoom(room);
+        booking.setGuestName(guestName);
+        booking.setGuestEmail(guestEmail);
+        booking.setCheckInDate(checkIn);
+        booking.setCheckOutDate(checkOut);
 
-Booking saved = bookingService.createBooking(booking);
-return ResponseEntity.status(201).body(saved);
+        Booking saved = bookingService.createBooking(booking);
+        return ResponseEntity.status(201).body(saved);
 
-} catch (RuntimeException e) {
-return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
-}
+    } catch (RuntimeException e) {
+        String msg = e.getMessage();
+        if (msg.startsWith("Room not found")) {
+            return ResponseEntity.status(404).body(new ErrorResponse(msg));
+        }
+        return ResponseEntity.badRequest().body(new ErrorResponse(msg));
+    }
 }
 
 @GetMapping
