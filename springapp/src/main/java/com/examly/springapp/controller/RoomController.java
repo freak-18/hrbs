@@ -36,5 +36,11 @@ public class RoomController {
         }
     }
 
+    @PostMapping
+    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
+        Room savedRoom = roomService.saveRoom(room);
+        return ResponseEntity.ok(savedRoom);
+    }
+
     record ErrorResponse(String message) {}
 }

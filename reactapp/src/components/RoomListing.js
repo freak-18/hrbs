@@ -17,14 +17,14 @@ function RoomListing() {
       const res = await getRooms(onlyAvailable);
       setRooms(res.data);
     } catch {
-      setError('Could not load rooms');
+      setError('could not load rooms');
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return <p>Loading rooms...</p>;
-  if (error) return <p>[Error - You need to specify the message]</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div>

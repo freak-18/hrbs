@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = 'https://ide-fdadfbdadfdcccfccebcecfbddadbeddfbafff.premiumproject.examly.io/proxy/8080/api';
 
 export const getBookings = () => axios.get(`${API_URL}/bookings`);
 export const createBooking = (data) => axios.post(`${API_URL}/bookings`, data);

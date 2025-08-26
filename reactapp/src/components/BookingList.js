@@ -30,7 +30,7 @@ function BookingList() {
   };
 
   if (loading) return <p>Loading bookings...</p>;
-  if (error) return <p>[Error - You need to specify the message]</p>;
+  if (error) return <p>{error}</p>;
   if (bookings.length === 0) return <p>No bookings found</p>;
 
   return (

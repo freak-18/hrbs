@@ -1,22 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
 import AdminPanel from "./components/AdminPanel";
 import BookingForm from "./components/BookingForm";
 import BookingList from "./components/BookingList";
 import RoomListing from "./components/RoomListing";
 
-// Wrapper to pass room id from route param to BookingForm
-function BookingFormWrapper() {
+function BookingFormWrapper({ addBooking }) {
   const { id } = useParams();
-  const room = {
-    roomId: Number(id),
-    roomNumber: id,
-    price: 1500,
-  };
-  return <BookingForm room={room} />;
+  const room = { roomId: Number(id), roomNumber: id, price: 1500 };
+  return <BookingForm room={room} onBookingSuccess={addBooking} />;
 }
 
 function App() {
+  const [bookings, setBookings] = useState([]);
+
+  const addBooking = (newBooking) => {
+    setBookings((prev) => [...prev, newBooking]);
+  };
+
   return (
     <Router>
       <nav className="navbar navbar-expand-lg navbar-light bg-light px-3">
@@ -31,9 +32,9 @@ function App() {
       <div className="container mt-4">
         <Routes>
           <Route path="/" element={<RoomListing />} />
-          <Route path="/bookings" element={<BookingList />} />
+          <Route path="/bookings" element={<BookingList bookings={bookings} />} />
           <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/book/:id" element={<BookingFormWrapper />} />
+          <Route path="/book/:id" element={<BookingFormWrapper addBooking={addBooking} />} />
         </Routes>
       </div>
     </Router>
