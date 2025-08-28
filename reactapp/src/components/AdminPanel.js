@@ -12,7 +12,7 @@ function AdminPanel() {
     async function fetchData() {
       try {
         const res = await getBookings();
-        // Show only pending bookings
+        // Show only pending bookings for main admin panel
         setBookings(
           res.data.filter(b => b.status?.toUpperCase() === 'PENDING')
         );
@@ -25,11 +25,36 @@ function AdminPanel() {
     fetchData();
   }, []);
 
+  // Refresh admin panel when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        setLoading(true);
+        async function refreshData() {
+          try {
+            const res = await getBookings();
+            setBookings(
+              res.data.filter(b => b.status?.toUpperCase() === 'PENDING')
+            );
+            setError(null);
+          } catch {
+            setError('Error loading bookings');
+          } finally {
+            setLoading(false);
+          }
+        }
+        refreshData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const handleUpdate = async (id, status) => {
     setProcessingId(id);
     try {
       await updateBookingStatus(id, status);
-      // Message should match lowercase requirement
       setMessage(`Booking ${id} has been ${status.toLowerCase()}`);
       // Remove updated booking from list
       setBookings(prev => prev.filter(b => b.bookingId !== id));
@@ -39,6 +64,8 @@ function AdminPanel() {
       setProcessingId(null);
     }
   };
+
+
 
   if (loading) return (
     <div className="container py-5 text-center">
@@ -153,6 +180,10 @@ function AdminPanel() {
                               <small className="text-muted">
                                 ID: #{booking.bookingId}
                               </small>
+                              <br />
+                              <span className={`badge ${booking.status === 'PENDING' ? 'bg-warning' : 'bg-success'} mt-1`}>
+                                {booking.status}
+                              </span>
                             </div>
                           </td>
                           <td className="py-3">

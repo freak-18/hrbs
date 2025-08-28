@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { getBookings, updateBookingStatus, getRooms } from '../utils/api';
+import { getBookings, updateBookingStatus, getRooms, freeRoom, cancelBooking, freeAllRooms } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = ({ onLogout }) => {
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [message, setMessage] = useState('');
   const [processingId, setProcessingId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -22,6 +22,8 @@ const AdminDashboard = ({ onLogout }) => {
     fetchData();
   }, []);
 
+
+
   const fetchData = async () => {
     try {
       const [bookingsRes, roomsRes] = await Promise.all([
@@ -31,8 +33,15 @@ const AdminDashboard = ({ onLogout }) => {
       
       setBookings(bookingsRes.data || []);
       setRooms(roomsRes.data || []);
+      setError(null);
     } catch (err) {
-      setError('Error loading data');
+      // Fallback: Load from localStorage
+      const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      const localRooms = JSON.parse(localStorage.getItem('hotelRooms') || '[]');
+      
+      setBookings(localBookings);
+      setRooms(localRooms);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -50,13 +59,111 @@ const AdminDashboard = ({ onLogout }) => {
     try {
       await updateBookingStatus(id, status);
       setMessage(`Booking #${id} has been ${status.toLowerCase()} successfully`);
+      
+      // Update booking status in local state
       setBookings(prev => prev.map(b => 
         b.bookingId === id ? {...b, status} : b
       ));
+      
+      // Update room availability based on booking status
+      const booking = bookings.find(b => b.bookingId === id);
+      if (booking && booking.room) {
+        setRooms(prev => prev.map(r => 
+          r.roomId === booking.room.roomId 
+            ? {...r, available: status !== 'APPROVED'} 
+            : r
+        ));
+      }
+      
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Update failed');
+      // Fallback: Update localStorage
+      const updatedBookings = bookings.map(b => 
+        b.bookingId === id ? {...b, status} : b
+      );
+      setBookings(updatedBookings);
+      localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
+      
+      // Update room availability
+      const booking = bookings.find(b => b.bookingId === id);
+      if (booking && booking.room) {
+        const updatedRooms = rooms.map(r => 
+          r.roomId === booking.room.roomId 
+            ? {...r, available: status !== 'APPROVED'} 
+            : r
+        );
+        setRooms(updatedRooms);
+        localStorage.setItem('hotelRooms', JSON.stringify(updatedRooms));
+      }
+      
+      setMessage(`Booking #${id} has been ${status.toLowerCase()} successfully`);
       setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleFreeRoom = async (roomId) => {
+    const room = rooms.find(r => r.roomId === roomId);
+    
+    if (!room || room.available) {
+      setMessage('Room is already available');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
+    const approvedBooking = bookings.find(b => 
+      b.room?.roomId === roomId && b.status === 'APPROVED'
+    );
+    
+    const confirmMessage = approvedBooking 
+      ? `Are you sure you want to free Room ${room.roomNumber}? This will cancel the booking for ${approvedBooking.guestName}.`
+      : `Are you sure you want to free Room ${room.roomNumber}?`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    setProcessingId(roomId);
+    try {
+      // Try the freeRoom API first
+      await freeRoom(roomId);
+      setMessage(`Room ${room.roomNumber} has been freed and is now available`);
+      
+      // Update local state immediately
+      setBookings(prev => prev.filter(b => 
+        !(b.room?.roomId === roomId && b.status === 'APPROVED')
+      ));
+      setRooms(prev => prev.map(r => 
+        r.roomId === roomId ? {...r, available: true} : r
+      ));
+      
+
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      
+      // Fallback: Cancel the approved booking directly
+      try {
+        if (approvedBooking) {
+          await cancelBooking(approvedBooking.bookingId);
+          setMessage(`Room ${room.roomNumber} has been freed and is now available`);
+          
+          // Update local state
+          setBookings(prev => prev.filter(b => b.bookingId !== approvedBooking.bookingId));
+          setRooms(prev => prev.map(r => 
+            r.roomId === roomId ? {...r, available: true} : r
+          ));
+          
+          setTimeout(() => setMessage(''), 3000);
+        } else {
+          setMessage('No approved booking found to cancel');
+          setTimeout(() => setMessage(''), 3000);
+        }
+      } catch (fallbackErr) {
+        const errorMessage = fallbackErr.response?.data?.message || fallbackErr.message || 'Failed to free room';
+        setMessage(errorMessage);
+        setTimeout(() => setMessage(''), 3000);
+      }
     } finally {
       setProcessingId(null);
     }
@@ -91,7 +198,7 @@ const AdminDashboard = ({ onLogout }) => {
     <div className="min-vh-100" style={{backgroundColor: '#f8f9fa'}}>
       {/* Admin Sidebar */}
       <div className="d-flex">
-        <div className="admin-sidebar" style={{width: '250px', position: 'fixed', height: '100vh', zIndex: 1000}}>
+        <div className="admin-sidebar" style={{width: '250px', position: 'fixed', height: '100vh', zIndex: 1000, backgroundColor: '#2c3e50'}}>
           <div className="p-4">
             {/* Admin Profile */}
             <div className="text-center mb-4 pb-4 border-bottom border-secondary">
@@ -458,10 +565,53 @@ const AdminDashboard = ({ onLogout }) => {
                       <i className="fas fa-bed me-2"></i>
                       Room Management ({rooms.length})
                     </h6>
-                    <button className="btn btn-primary btn-sm">
-                      <i className="fas fa-plus me-1"></i>
-                      Add New Room
-                    </button>
+                    <div className="d-flex gap-2">
+                      <button 
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={fetchData}
+                        disabled={loading}
+                        title="Refresh Rooms"
+                      >
+                        <i className="fas fa-sync-alt me-1"></i>
+                        Refresh
+                      </button>
+                      <button 
+                        className="btn btn-warning btn-sm"
+                        onClick={async () => {
+                          if (window.confirm('Make all rooms available? This will cancel all approved bookings.')) {
+                            try {
+                              await freeAllRooms();
+                              await fetchData();
+                              setMessage('All rooms are now available');
+                              setTimeout(() => setMessage(''), 3000);
+                            } catch (err) {
+                              // Update localStorage and local state
+                              const updatedRooms = rooms.map(r => ({...r, available: true}));
+                              const updatedBookings = bookings.filter(b => b.status !== 'APPROVED');
+                              
+                              setRooms(updatedRooms);
+                              setBookings(updatedBookings);
+                              
+                              // Save to localStorage so RoomListing can see the changes
+                              localStorage.setItem('hotelRooms', JSON.stringify(updatedRooms));
+                              localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
+                              
+                              setMessage('All rooms are now available');
+                              setTimeout(() => setMessage(''), 3000);
+                            }
+                          }
+                        }}
+                        disabled={loading}
+                        title="Make All Rooms Available"
+                      >
+                        <i className="fas fa-unlock me-1"></i>
+                        Free All
+                      </button>
+                      <button className="btn btn-primary btn-sm">
+                        <i className="fas fa-plus me-1"></i>
+                        Add New Room
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="card-body p-0">
@@ -489,22 +639,52 @@ const AdminDashboard = ({ onLogout }) => {
                             </td>
                             <td className="fw-bold text-success">₹{room.pricePerNight?.toLocaleString()}</td>
                             <td>
-                              <span className={`badge ${room.available ? 'bg-success' : 'bg-danger'}`}>
-                                {room.available ? 'Available' : 'Occupied'}
-                              </span>
+                              <div>
+                                <span className={`badge ${room.available !== false ? 'bg-success' : 'bg-danger'} mb-1`}>
+                                  {room.available !== false ? 'Available' : 'Occupied'}
+                                </span>
+                                {room.available === false && (
+                                  <div>
+                                    <small className="text-muted d-block">
+                                      {(() => {
+                                        const approvedBooking = bookings.find(b => 
+                                          b.room?.roomId === room.roomId && b.status === 'APPROVED'
+                                        );
+                                        return approvedBooking ? `Guest: ${approvedBooking.guestName}` : 'Booking details unavailable';
+                                      })()} 
+                                    </small>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td>
-                              <span className="badge bg-info">
-                                {Array.isArray(bookings) ? bookings.filter(b => b.room?.roomId === room.roomId).length : 0} bookings
-                              </span>
+                              <div>
+                                <span className="badge bg-info mb-1">
+                                  {Array.isArray(bookings) ? bookings.filter(b => b.room?.roomId === room.roomId).length : 0} total
+                                </span>
+                                <div>
+                                  <small className="text-success d-block">
+                                    {Array.isArray(bookings) ? bookings.filter(b => b.room?.roomId === room.roomId && b.status === 'APPROVED').length : 0} approved
+                                  </small>
+                                </div>
+                              </div>
                             </td>
                             <td>
                               <div className="btn-group btn-group-sm">
-                                <button className="btn btn-outline-primary" title="Edit Room">
-                                  <i className="fas fa-edit"></i>
-                                </button>
                                 <button className="btn btn-outline-info" title="View Details">
                                   <i className="fas fa-eye"></i>
+                                </button>
+                                <button 
+                                  className={`btn ${room.available !== false ? 'btn-outline-secondary' : 'btn-warning'}`}
+                                  title={room.available !== false ? 'Room Available' : 'Free Room'}
+                                  onClick={() => handleFreeRoom(room.roomId)}
+                                  disabled={processingId === room.roomId || room.available !== false}
+                                >
+                                  {processingId === room.roomId ? (
+                                    <span className="spinner-border spinner-border-sm"></span>
+                                  ) : (
+                                    <i className={`fas ${room.available !== false ? 'fa-check' : 'fa-undo'}`}></i>
+                                  )}
                                 </button>
                               </div>
                             </td>

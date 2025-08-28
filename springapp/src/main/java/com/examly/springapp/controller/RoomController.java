@@ -18,7 +18,10 @@ public class RoomController {
     }
 
     @GetMapping
-    public List<Room> getAllRooms() {
+    public List<Room> getAllRooms(@RequestParam(required = false) Boolean available) {
+        if (Boolean.TRUE.equals(available)) {
+            return roomService.getAvailableRooms();
+        }
         return roomService.getAllRooms();
     }
 
@@ -40,6 +43,28 @@ public class RoomController {
     public ResponseEntity<Room> createRoom(@RequestBody Room room) {
         Room savedRoom = roomService.saveRoom(room);
         return ResponseEntity.ok(savedRoom);
+    }
+
+    @PutMapping("/{id}/free")
+    public ResponseEntity<?> freeRoom(@PathVariable Long id) {
+        try {
+            roomService.freeRoom(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ErrorResponse("Failed to free room: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/free-all")
+    public ResponseEntity<?> freeAllRooms() {
+        try {
+            roomService.freeAllRooms();
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ErrorResponse("Failed to free all rooms: " + e.getMessage()));
+        }
     }
 
     record ErrorResponse(String message) {}

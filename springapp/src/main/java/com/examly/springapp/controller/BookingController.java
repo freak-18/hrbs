@@ -92,5 +92,20 @@ return ResponseEntity.badRequest().body(new ErrorResponse(msg != null ? msg : "U
 }
 }
 
+@DeleteMapping("/{id}")
+public ResponseEntity<?> cancelBooking(@PathVariable Long id) {
+try {
+bookingService.cancelBooking(id);
+return ResponseEntity.ok().build();
+} catch (RuntimeException e) {
+String msg = e.getMessage();
+if (msg != null && msg.contains("not found")) {
+return ResponseEntity.status(404).body(new ErrorResponse(msg));
+} else {
+return ResponseEntity.badRequest().body(new ErrorResponse(msg != null ? msg : "Unknown error"));
+}
+}
+}
+
 record ErrorResponse(String message) {}
 }

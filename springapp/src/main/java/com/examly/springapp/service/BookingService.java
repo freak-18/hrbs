@@ -6,6 +6,8 @@ import com.examly.springapp.repository.BookingRepository;
 import com.examly.springapp.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,10 +17,17 @@ import java.util.List;
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
+    private RoomService roomService;
 
     public BookingService(BookingRepository bookingRepository, RoomRepository roomRepository) {
         this.bookingRepository = bookingRepository;
         this.roomRepository = roomRepository;
+    }
+
+    @Autowired
+    @Lazy
+    public void setRoomService(RoomService roomService) {
+        this.roomService = roomService;
     }
 
     @Transactional
@@ -62,18 +71,39 @@ throw new RuntimeException("Invalid status: " + status);
 }
 
 booking.setStatus(status);
-if (status.equals("APPROVED")) {
+Booking savedBooking = bookingRepository.save(booking);
+
+// Update room availability based on booking status
+if (booking.getRoom() != null && roomService != null) {
 Room room = booking.getRoom();
+if ("APPROVED".equals(status)) {
 room.setAvailable(false);
-roomRepository.save(room);
+} else if ("REJECTED".equals(status)) {
+room.setAvailable(true);
 }
-return bookingRepository.save(booking);
+roomService.saveRoom(room);
+}
+
+return savedBooking;
 } catch (RuntimeException e) {
-// Re-throw RuntimeExceptions as-is to preserve expected error messages
 throw e;
 } catch (Exception e) {
-// Only wrap unexpected non-RuntimeExceptions
 throw new RuntimeException("Failed to update booking status: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()), e);
 }
+}
+
+@Transactional
+public void cancelBooking(Long id) {
+Booking booking = bookingRepository.findById(id)
+.orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
+
+// Make room available if booking was approved
+if ("APPROVED".equals(booking.getStatus()) && booking.getRoom() != null && roomService != null) {
+Room room = booking.getRoom();
+room.setAvailable(true);
+roomService.saveRoom(room);
+}
+
+bookingRepository.delete(booking);
 }
 }

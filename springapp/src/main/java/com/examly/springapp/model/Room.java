@@ -8,7 +8,6 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Room {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,18 +47,5 @@ public class Room {
         this.amenities = new java.util.ArrayList<>(Arrays.asList("WiFi", "AC", "TV"));
     }
     
-    // Full constructor
-    public Room(Long roomId, String roomNumber, String roomType, Double pricePerNight, Double price,
-                Integer capacity, Boolean available, Double rating, List<String> amenities, List<Booking> bookings) {
-        this.roomId = roomId;
-        this.roomNumber = roomNumber;
-        this.roomType = roomType;
-        this.pricePerNight = pricePerNight;
-        this.price = price;
-        this.capacity = capacity;
-        this.available = available;
-        this.rating = rating;
-        this.amenities = amenities;
-        this.bookings = bookings;
-    }
+
 }
