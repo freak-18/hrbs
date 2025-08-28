@@ -157,7 +157,7 @@ function AdminPanel() {
                           </td>
                           <td className="py-3">
                             <div>
-                              <div className="fw-semibold">Room {booking.room?.roomNumber || 'N/A'}</div>
+                              <div className="fw-semibold">Room <span>{booking.room?.roomNumber || booking.roomNumber || 'N/A'}</span></div>
                               <small className="text-muted">{booking.room?.roomType || 'Deluxe Room'}</small>
                             </div>
                           </td>

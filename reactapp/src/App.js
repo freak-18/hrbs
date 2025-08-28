@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
 import AdminPanel from "./components/AdminPanel";
 import BookingForm from "./components/BookingForm";
@@ -7,18 +7,13 @@ import RoomListing from "./components/RoomListing";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
-function BookingFormWrapper({ addBooking }) {
+function BookingFormWrapper() {
   const { id } = useParams();
   const room = { roomId: Number(id), roomNumber: id, price: 1500 };
-  return <BookingForm room={room} onBookingSuccess={addBooking} />;
+  return <BookingForm room={room} />;
 }
 
 function App() {
-  const [bookings, setBookings] = useState([]);
-
-  const addBooking = (newBooking) => {
-    setBookings((prev) => [...prev, newBooking]);
-  };
 
   return (
     <Router>
@@ -60,9 +55,9 @@ function App() {
       <div className="min-vh-100" style={{backgroundColor: '#f5f7fa'}}>
         <Routes>
           <Route path="/" element={<RoomListing />} />
-          <Route path="/bookings" element={<BookingList bookings={bookings} />} />
+          <Route path="/bookings" element={<BookingList />} />
           <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/book/:id" element={<BookingFormWrapper addBooking={addBooking} />} />
+          <Route path="/book/:id" element={<BookingFormWrapper />} />
         </Routes>
       </div>
     </Router>

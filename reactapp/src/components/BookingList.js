@@ -25,7 +25,16 @@ function BookingList() {
       case 'PENDING': return 'bg-warning text-dark';
       case 'APPROVED': return 'bg-success';
       case 'REJECTED': return 'bg-danger';
-      default: return 'bg-secondary';
+      default: return 'bg-warning text-dark';
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'PENDING': return { background: '#facc15' };
+      case 'APPROVED': return { background: '#22c55e' };
+      case 'REJECTED': return { background: '#ef4444' };
+      default: return { background: '#facc15' };
     }
   };
 
@@ -34,7 +43,7 @@ function BookingList() {
       case 'PENDING': return 'fas fa-clock';
       case 'APPROVED': return 'fas fa-check-circle';
       case 'REJECTED': return 'fas fa-times-circle';
-      default: return 'fas fa-question-circle';
+      default: return 'fas fa-clock';
     }
   };
 
@@ -94,9 +103,9 @@ function BookingList() {
                 <div className="card-body">
                   {/* Status Badge */}
                   <div className="d-flex justify-content-between align-items-start mb-3">
-                    <span className={`badge ${getStatusBadge(booking.status)} px-3 py-2`}>
+                    <span className={`badge ${getStatusBadge(booking.status)} px-3 py-2`} style={getStatusStyle(booking.status)}>
                       <i className={`${getStatusIcon(booking.status)} me-1`}></i>
-                      {booking.status.charAt(0) + booking.status.slice(1).toLowerCase()}
+                      {booking.status ? (booking.status.charAt(0) + booking.status.slice(1).toLowerCase()) : 'Pending'}
                     </span>
                     <small className="text-muted">
                       ID: #{booking.bookingId}
