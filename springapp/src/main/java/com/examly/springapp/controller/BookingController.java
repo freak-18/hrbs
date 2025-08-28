@@ -56,10 +56,10 @@ public ResponseEntity<?> createBooking(@RequestBody Map<String, Object> payload)
 
     } catch (RuntimeException e) {
         String msg = e.getMessage();
-        if (msg.startsWith("Room not found")) {
+        if (msg != null && msg.startsWith("Room not found")) {
             return ResponseEntity.status(404).body(new ErrorResponse(msg));
         }
-        return ResponseEntity.badRequest().body(new ErrorResponse(msg));
+        return ResponseEntity.badRequest().body(new ErrorResponse(msg != null ? msg : "Unknown error"));
     }
 }
 
@@ -84,10 +84,10 @@ try {
 return ResponseEntity.ok(bookingService.updateBookingStatus(id, status));
 } catch (RuntimeException e) {
 String msg = e.getMessage();
-if (msg.contains("not found")) {
+if (msg != null && msg.contains("not found")) {
 return ResponseEntity.status(404).body(new ErrorResponse(msg));
 } else {
-return ResponseEntity.badRequest().body(new ErrorResponse(msg));
+return ResponseEntity.badRequest().body(new ErrorResponse(msg != null ? msg : "Unknown error"));
 }
 }
 }

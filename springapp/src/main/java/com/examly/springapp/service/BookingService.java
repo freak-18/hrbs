@@ -53,6 +53,7 @@ return bookingRepository.findById(id)
 
 @Transactional
 public Booking updateBookingStatus(Long id, String status) {
+try {
 Booking booking = bookingRepository.findById(id)
 .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
 
@@ -67,5 +68,12 @@ room.setAvailable(false);
 roomRepository.save(room);
 }
 return bookingRepository.save(booking);
+} catch (RuntimeException e) {
+// Re-throw RuntimeExceptions as-is to preserve expected error messages
+throw e;
+} catch (Exception e) {
+// Only wrap unexpected non-RuntimeExceptions
+throw new RuntimeException("Failed to update booking status: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()), e);
+}
 }
 }

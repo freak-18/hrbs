@@ -26,6 +26,7 @@ public class Room {
     private List<String> amenities;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Booking> bookings;
     
     @PostLoad
@@ -44,7 +45,7 @@ public class Room {
         this.capacity = capacity;
         this.available = available;
         this.rating = 4.0;
-        this.amenities = Arrays.asList("WiFi", "AC", "TV");
+        this.amenities = new java.util.ArrayList<>(Arrays.asList("WiFi", "AC", "TV"));
     }
     
     // Full constructor
