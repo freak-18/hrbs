@@ -1,0 +1,241 @@
+/* MakeMyTrip-inspired Hotel Booking App Styles */
+
+/* --- Font Awesome & Google Fonts --- */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* --- CSS Variables (MakeMyTrip Color Palette) --- */
+:root {
+  --primary-color: #0066cc; /* MakeMyTrip Blue */
+  --primary-dark: #004499;
+  --secondary-color: #051423; /* Dark Navy */
+  --accent-color: #ff6b35; /* Orange accent */
+  --text-color: #333333;
+  --text-muted: #666666;
+  --light-bg: #f5f7fa;
+  --white: #ffffff;
+  --success: #22c55e;
+  --warning: #facc15;
+  --danger: #ef4444;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+}
+
+/* --- Global Styles --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--light-bg);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* --- Custom Bootstrap Overrides --- */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+/* --- Room Card Hover Effects --- */
+.room-card {
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.room-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+.room-card .card-img-top {
+  transition: transform 0.3s ease;
+}
+
+.room-card:hover .card-img-top {
+  transform: scale(1.05);
+}
+
+/* --- Navigation Enhancements --- */
+.navbar-nav .nav-link {
+  transition: all 0.3s ease;
+  border-radius: var(--border-radius);
+  margin: 0 4px;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+/* --- Form Enhancements --- */
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+}
+
+.form-control-lg {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+/* --- Card Enhancements --- */
+.card {
+  border: none;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.card-header {
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+/* --- Button Enhancements --- */
+.btn {
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-group .btn {
+  transform: none;
+}
+
+.btn-group .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* --- Badge Enhancements --- */
+.badge {
+  font-weight: 500;
+  border-radius: var(--border-radius);
+}
+
+/* --- Table Enhancements --- */
+.table {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.table thead th {
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+}
+
+/* --- Alert Enhancements --- */
+.alert {
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-weight: 500;
+}
+
+/* --- Loading Spinner --- */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* --- Responsive Utilities --- */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .btn-group .btn {
+    border-radius: var(--border-radius) !important;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* --- Animation Classes --- */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Utility Classes --- */
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.shadow-custom {
+  box-shadow: var(--shadow-md);
+}
+
+.border-radius-custom {
+  border-radius: var(--border-radius-lg);
+}
+
+/* --- Icon Enhancements --- */
+.fas, .far {
+  font-size: inherit;
+}
+
+/* --- Sticky Elements --- */
+.sticky-top {
+  position: sticky;
+  top: 20px;
+  z-index: 1020;
+}

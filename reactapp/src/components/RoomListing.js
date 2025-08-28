@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getRooms } from '../utils/api';
+import { Link } from 'react-router-dom';
 
 function RoomListing() {
   const [rooms, setRooms] = useState([]);
@@ -23,39 +24,187 @@ function RoomListing() {
     }
   };
 
-  if (loading) return <p>Loading rooms...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return (
+    <div className="container py-5 text-center">
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading rooms...</span>
+      </div>
+      <p className="mt-3 text-muted">Finding the best rooms for you...</p>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="container py-5 text-center">
+      <div className="alert alert-danger" role="alert">
+        <i className="fas fa-exclamation-triangle me-2"></i>
+        {error}
+      </div>
+    </div>
+  );
 
   return (
     <div>
-      <label>
-        Show available only
-        <input
-          type="checkbox"
-          onChange={() => setShowAvailableOnly(!showAvailableOnly)}
-        />
-      </label>
-      <table>
-        <tbody>
-          {rooms.map(r => (
-            <tr key={r.roomId}>
-              <td>{r.roomNumber}</td>
-              <td>{r.roomType}</td>
-              <td>{r.pricePerNight}</td>
-              <td>{r.capacity}</td>
-              <td>{r.available ? 'Available' : 'Unavailable'}</td>
-              <td>
-                <button
-                  data-testid={`book-btn-${r.roomId}`}
-                  disabled={!r.available}
-                >
-                  Book Now
-                </button>
-              </td>
-            </tr>
+      {/* Hero Section */}
+      <div className="bg-primary text-white py-5">
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-lg-8">
+              <h1 className="display-4 fw-bold mb-3">Find Your Perfect Stay</h1>
+              <p className="lead mb-4">Discover amazing hotels with the best prices and amenities</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Filter Section */}
+      <div className="container py-4">
+        <div className="row">
+          <div className="col-12">
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body">
+                <div className="row align-items-center">
+                  <div className="col-md-6">
+                    <h5 className="mb-0">
+                      <i className="fas fa-filter me-2 text-primary"></i>
+                      Filter Results
+                    </h5>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="form-check form-switch d-flex justify-content-md-end">
+                      <input
+                        className="form-check-input me-2"
+                        type="checkbox"
+                        id="availableOnly"
+                        checked={showAvailableOnly}
+                        onChange={() => setShowAvailableOnly(!showAvailableOnly)}
+                      />
+                      <label className="form-check-label" htmlFor="availableOnly">
+                        Show available rooms only
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Header */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <h4 className="mb-0">
+              <i className="fas fa-bed me-2 text-primary"></i>
+              {rooms.length} Hotels Found
+            </h4>
+            <p className="text-muted">Choose from our selection of premium accommodations</p>
+          </div>
+        </div>
+
+        {/* Room Cards */}
+        <div className="row">
+          {rooms.map(room => (
+            <div key={room.roomId} className="col-lg-4 col-md-6 mb-4">
+              <div className="card h-100 shadow-sm border-0 room-card">
+                {/* Room Image */}
+                <div className="position-relative">
+                  <img 
+                    src={`https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop&crop=center`}
+                    className="card-img-top" 
+                    alt={`${room.roomType} Room`}
+                    style={{height: '200px', objectFit: 'cover'}}
+                  />
+                  <div className="position-absolute top-0 end-0 m-2">
+                    <span className={`badge ${room.available ? 'bg-success' : 'bg-danger'}`}>
+                      {room.available ? 'Available' : 'Booked'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="card-body d-flex flex-column">
+                  {/* Room Header */}
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h5 className="card-title mb-1 fw-bold">{room.roomType}</h5>
+                      <p className="text-muted small mb-0">
+                        <i className="fas fa-door-open me-1"></i>
+                        Room {room.roomNumber}
+                      </p>
+                    </div>
+                    <div className="text-end">
+                      <div className="h5 mb-0 text-primary fw-bold">
+                        ₹{room.pricePerNight?.toLocaleString() || '1,500'}
+                      </div>
+                      <small className="text-muted">per night</small>
+                    </div>
+                  </div>
+
+                  {/* Room Details */}
+                  <div className="mb-3">
+                    <div className="row g-2 text-sm">
+                      <div className="col-6">
+                        <i className="fas fa-users text-muted me-1"></i>
+                        <small>{room.capacity || 2} Guests</small>
+                      </div>
+                      <div className="col-6">
+                        <i className="fas fa-wifi text-muted me-1"></i>
+                        <small>Free WiFi</small>
+                      </div>
+                      <div className="col-6">
+                        <i className="fas fa-car text-muted me-1"></i>
+                        <small>Free Parking</small>
+                      </div>
+                      <div className="col-6">
+                        <i className="fas fa-coffee text-muted me-1"></i>
+                        <small>Breakfast</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Amenities */}
+                  <div className="mb-3">
+                    <div className="d-flex flex-wrap gap-1">
+                      <span className="badge bg-light text-dark">AC</span>
+                      <span className="badge bg-light text-dark">TV</span>
+                      <span className="badge bg-light text-dark">Room Service</span>
+                    </div>
+                  </div>
+
+                  {/* Book Button */}
+                  <div className="mt-auto">
+                    {room.available ? (
+                      <Link 
+                        to={`/book/${room.roomId}`}
+                        className="btn btn-primary w-100 fw-semibold"
+                        data-testid={`book-btn-${room.roomId}`}
+                      >
+                        <i className="fas fa-calendar-check me-2"></i>
+                        Book Now
+                      </Link>
+                    ) : (
+                      <button 
+                        className="btn btn-outline-secondary w-100" 
+                        disabled
+                        data-testid={`book-btn-${room.roomId}`}
+                      >
+                        <i className="fas fa-ban me-2"></i>
+                        Not Available
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+
+        {rooms.length === 0 && (
+          <div className="text-center py-5">
+            <i className="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4 className="text-muted">No rooms found</h4>
+            <p className="text-muted">Try adjusting your filters</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
