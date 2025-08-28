@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom';
 
 // Sample rooms data for fallback
 const SAMPLE_ROOMS = [
-  { roomId: 1, roomNumber: '101', roomType: 'Standard', pricePerNight: 100, capacity: 2, available: true },
-  { roomId: 2, roomNumber: '102', roomType: 'Deluxe', pricePerNight: 150, capacity: 4, available: false },
-  { roomId: 3, roomNumber: '201', roomType: 'Premium', pricePerNight: 200, capacity: 3, available: true },
-  { roomId: 4, roomNumber: '202', roomType: 'Suite', pricePerNight: 300, capacity: 4, available: true },
-  { roomId: 5, roomNumber: '301', roomType: 'Executive', pricePerNight: 250, capacity: 2, available: false },
-  { roomId: 6, roomNumber: '302', roomType: 'Royal Suite', pricePerNight: 500, capacity: 6, available: true }
+  { roomId: 1, roomNumber: '101', roomType: 'Deluxe Room', pricePerNight: 3500, capacity: 2, available: true, rating: 4.5, amenities: ['WiFi', 'AC', 'TV', 'Room Service'] },
+  { roomId: 2, roomNumber: '102', roomType: 'Premium Suite', pricePerNight: 5500, capacity: 4, available: false, rating: 4.7, amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Balcony'] },
+  { roomId: 3, roomNumber: '201', roomType: 'Executive Room', pricePerNight: 4200, capacity: 3, available: true, rating: 4.3, amenities: ['WiFi', 'AC', 'TV', 'Work Desk'] },
+  { roomId: 4, roomNumber: '202', roomType: 'Royal Suite', pricePerNight: 8500, capacity: 4, available: true, rating: 4.9, amenities: ['WiFi', 'AC', 'TV', 'Jacuzzi', 'Butler Service'] },
+  { roomId: 5, roomNumber: '301', roomType: 'Business Room', pricePerNight: 4800, capacity: 2, available: false, rating: 4.4, amenities: ['WiFi', 'AC', 'TV', 'Conference Setup'] },
+  { roomId: 6, roomNumber: '302', roomType: 'Family Suite', pricePerNight: 6200, capacity: 6, available: true, rating: 4.6, amenities: ['WiFi', 'AC', 'TV', 'Kitchen', 'Kids Area'] }
 ];
 
 function RoomListing() {
@@ -17,6 +17,8 @@ function RoomListing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const [sortBy, setSortBy] = useState('price');
+  const [priceRange, setPriceRange] = useState([0, 10000]);
 
   useEffect(() => {
     fetchRooms(showAvailableOnly);
@@ -45,12 +47,27 @@ function RoomListing() {
     }
   };
 
+  const filteredAndSortedRooms = rooms
+    .filter(room => room.pricePerNight >= priceRange[0] && room.pricePerNight <= priceRange[1])
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return a.pricePerNight - b.pricePerNight;
+        case 'rating':
+          return (b.rating || 4.0) - (a.rating || 4.0);
+        case 'name':
+          return a.roomType.localeCompare(b.roomType);
+        default:
+          return 0;
+      }
+    });
+
   if (loading) return (
     <div className="container py-5 text-center">
-      <div className="spinner-border text-primary" role="status">
+      <div className="spinner-border text-primary" role="status" style={{width: '3rem', height: '3rem'}}>
         <span className="visually-hidden">Loading rooms...</span>
       </div>
-      <p className="mt-3 text-muted">Finding the best rooms for you...</p>
+      <p className="mt-3 text-muted h5">Finding the best hotels for you...</p>
     </div>
   );
   
@@ -66,12 +83,34 @@ function RoomListing() {
   return (
     <div>
       {/* Hero Section */}
-      <div className="bg-primary text-white py-5">
+      <div className="hero-section text-white py-5" style={{
+        background: 'linear-gradient(135deg, #0066cc 0%, #004499 100%)',
+        minHeight: '40vh',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-8">
-              <h1 className="display-4 fw-bold mb-3">Find Your Perfect Stay</h1>
-              <p className="lead mb-4">Discover amazing hotels with the best prices and amenities</p>
+              <h1 className="display-4 fw-bold mb-3">
+                <i className="fas fa-hotel me-3"></i>
+                Premium Hotels
+              </h1>
+              <p className="lead mb-4">Discover luxury accommodations with world-class amenities</p>
+              <div className="d-flex gap-4">
+                <div className="text-center">
+                  <div className="h4 fw-bold mb-0">{rooms.length}</div>
+                  <small>Hotels Available</small>
+                </div>
+                <div className="text-center">
+                  <div className="h4 fw-bold mb-0">4.5★</div>
+                  <small>Average Rating</small>
+                </div>
+                <div className="text-center">
+                  <div className="h4 fw-bold mb-0">24/7</div>
+                  <small>Support</small>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -83,24 +122,52 @@ function RoomListing() {
           <div className="col-12">
             <div className="card shadow-sm border-0 mb-4">
               <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-md-6">
-                    <h5 className="mb-0">
+                <div className="row g-3 align-items-center">
+                  <div className="col-md-3">
+                    <h6 className="mb-2 fw-bold">
                       <i className="fas fa-filter me-2 text-primary"></i>
-                      Filter Results
-                    </h5>
+                      Filters
+                    </h6>
                   </div>
-                  <div className="col-md-6">
-                    <div className="form-check form-switch d-flex justify-content-md-end">
+                  <div className="col-md-3">
+                    <label className="form-label small fw-semibold">Sort By</label>
+                    <select 
+                      className="form-select"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                    >
+                      <option value="price">Price (Low to High)</option>
+                      <option value="rating">Rating (High to Low)</option>
+                      <option value="name">Name (A to Z)</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label small fw-semibold">Price Range</label>
+                    <select 
+                      className="form-select"
+                      onChange={(e) => {
+                        const [min, max] = e.target.value.split('-').map(Number);
+                        setPriceRange([min, max]);
+                      }}
+                    >
+                      <option value="0-10000">All Prices</option>
+                      <option value="0-3000">Under ₹3,000</option>
+                      <option value="3000-5000">₹3,000 - ₹5,000</option>
+                      <option value="5000-8000">₹5,000 - ₹8,000</option>
+                      <option value="8000-10000">Above ₹8,000</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3">
+                    <div className="form-check form-switch mt-4">
                       <input
-                        className="form-check-input me-2"
+                        className="form-check-input"
                         type="checkbox"
                         id="availableOnly"
                         checked={showAvailableOnly}
                         onChange={() => setShowAvailableOnly(!showAvailableOnly)}
                       />
-                      <label className="form-check-label" htmlFor="availableOnly">
-                        Show available only
+                      <label className="form-check-label fw-semibold" htmlFor="availableOnly">
+                        Available Only
                       </label>
                     </div>
                   </div>
@@ -113,85 +180,123 @@ function RoomListing() {
         {/* Results Header */}
         <div className="row mb-4">
           <div className="col-12">
-            <h4 className="mb-0">
-              <i className="fas fa-bed me-2 text-primary"></i>
-              {rooms.length} Hotels Found
-            </h4>
-            <p className="text-muted">Choose from our selection of premium accommodations</p>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h4 className="mb-0 fw-bold">
+                  <i className="fas fa-bed me-2 text-primary"></i>
+                  {filteredAndSortedRooms.length} Hotels Found
+                </h4>
+                <p className="text-muted mb-0">Choose from our selection of premium accommodations</p>
+              </div>
+              <div className="d-flex gap-2">
+                <button className="btn btn-outline-primary btn-sm">
+                  <i className="fas fa-th me-1"></i> Grid
+                </button>
+                <button className="btn btn-outline-secondary btn-sm">
+                  <i className="fas fa-list me-1"></i> List
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Room Cards */}
         <div className="row">
-          {Array.isArray(rooms) && rooms.map(room => (
+          {Array.isArray(filteredAndSortedRooms) && filteredAndSortedRooms.map(room => (
             <div key={room.roomId} className="col-lg-4 col-md-6 mb-4">
               <div className="card h-100 shadow-sm border-0 room-card">
                 {/* Room Image */}
-                <div className="position-relative">
+                <div className="position-relative overflow-hidden">
                   <img 
-                    src={`https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop&crop=center`}
-                    className="card-img-top" 
+                    src={`https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop&crop=center&sig=${room.roomId}`}
+                    className="card-img-top room-image" 
                     alt={`${room.roomType} Room`}
-                    style={{height: '200px', objectFit: 'cover'}}
+                    style={{height: '250px', objectFit: 'cover'}}
                   />
-                  <div className="position-absolute top-0 end-0 m-2">
+                  <div className="position-absolute top-0 start-0 m-3">
+                    <span className="badge bg-warning text-dark">
+                      <i className="fas fa-star me-1"></i>
+                      {room.rating || '4.5'}
+                    </span>
+                  </div>
+                  <div className="position-absolute top-0 end-0 m-3">
                     <span className={`badge ${room.available ? 'bg-success' : 'bg-danger'}`}>
                       {room.available ? 'Available' : 'Booked'}
                     </span>
                   </div>
+                  <div className="position-absolute bottom-0 end-0 m-3">
+                    <span className="price-badge">
+                      ₹{room.pricePerNight?.toLocaleString() || '3,500'}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="card-body d-flex flex-column">
+                <div className="card-body d-flex flex-column p-4">
                   {/* Room Header */}
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                      <h5 className="card-title mb-1 fw-bold">{room.roomType}</h5>
-                      <p className="text-muted small mb-0">
-                        <i className="fas fa-door-open me-1"></i>
-                        Room <span>{room.roomNumber}</span>
-                      </p>
-                    </div>
-                    <div className="text-end">
-                      <div className="h5 mb-0 text-primary fw-bold">
-                        ₹{room.pricePerNight?.toLocaleString() || '1,500'}
-                      </div>
-                      <small className="text-muted">per night</small>
-                    </div>
-                  </div>
-
-                  {/* Room Details */}
                   <div className="mb-3">
-                    <div className="row g-2 text-sm">
-                      <div className="col-6">
-                        <i className="fas fa-users text-muted me-1"></i>
-                        <small>{room.capacity || 2} Guests</small>
-                      </div>
-                      <div className="col-6">
-                        <i className="fas fa-wifi text-muted me-1"></i>
-                        <small>Free WiFi</small>
-                      </div>
-                      <div className="col-6">
-                        <i className="fas fa-car text-muted me-1"></i>
-                        <small>Free Parking</small>
-                      </div>
-                      <div className="col-6">
-                        <i className="fas fa-coffee text-muted me-1"></i>
-                        <small>Breakfast</small>
-                      </div>
-                    </div>
+                    <h5 className="card-title mb-2 fw-bold">{room.roomType}</h5>
+                    <p className="text-muted small mb-0">
+                      <i className="fas fa-door-open me-1"></i>
+                      Room {room.roomNumber} • <i className="fas fa-users me-1"></i>
+                      {room.capacity || 2} Guests
+                    </p>
                   </div>
 
                   {/* Amenities */}
                   <div className="mb-3">
                     <div className="d-flex flex-wrap gap-1">
-                      <span className="badge bg-light text-dark">AC</span>
-                      <span className="badge bg-light text-dark">TV</span>
-                      <span className="badge bg-light text-dark">Room Service</span>
+                      {(room.amenities || ['WiFi', 'AC', 'TV', 'Room Service']).slice(0, 4).map((amenity, idx) => (
+                        <span key={idx} className="amenity-badge">
+                          {amenity}
+                        </span>
+                      ))}
+                      {(room.amenities || []).length > 4 && (
+                        <span className="amenity-badge">
+                          +{(room.amenities || []).length - 4} more
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Book Button */}
+                  {/* Features */}
+                  <div className="mb-3">
+                    <div className="row g-2 text-sm">
+                      <div className="col-6">
+                        <i className="fas fa-wifi text-success me-1"></i>
+                        <small>Free WiFi</small>
+                      </div>
+                      <div className="col-6">
+                        <i className="fas fa-car text-success me-1"></i>
+                        <small>Free Parking</small>
+                      </div>
+                      <div className="col-6">
+                        <i className="fas fa-utensils text-success me-1"></i>
+                        <small>Breakfast</small>
+                      </div>
+                      <div className="col-6">
+                        <i className="fas fa-swimming-pool text-success me-1"></i>
+                        <small>Pool Access</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price & Book Button */}
                   <div className="mt-auto">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <div>
+                        <div className="h5 mb-0 text-primary fw-bold">
+                          ₹{room.pricePerNight?.toLocaleString() || '3,500'}
+                        </div>
+                        <small className="text-muted">per night + taxes</small>
+                      </div>
+                      <div className="text-end">
+                        <small className="text-success fw-semibold">
+                          <i className="fas fa-tag me-1"></i>
+                          20% OFF
+                        </small>
+                      </div>
+                    </div>
+                    
                     {room.available ? (
                       <SafeLink 
                         to={`/book/${room.roomId}`}
@@ -207,8 +312,8 @@ function RoomListing() {
                         disabled
                         data-testid={`book-btn-${room.roomId}`}
                       >
-                        <i className="fas fa-calendar-check me-2"></i>
-                        Book Now
+                        <i className="fas fa-calendar-times me-2"></i>
+                        Not Available
                       </button>
                     )}
                   </div>
@@ -233,15 +338,53 @@ function RoomListing() {
           </tbody>
         </table>
 
-        {rooms.length === 0 && (
+        {filteredAndSortedRooms.length === 0 && (
           <div className="text-center py-5">
-            <i className="fas fa-search fa-3x text-muted mb-3"></i>
-            <h4 className="text-muted">No rooms found</h4>
-            <p className="text-muted">Try adjusting your filters</p>
+            <i className="fas fa-search fa-4x text-muted mb-4"></i>
+            <h4 className="text-muted mb-3">No hotels found</h4>
+            <p className="text-muted mb-4">Try adjusting your filters or search criteria</p>
+            <button 
+              className="btn btn-primary"
+              onClick={() => {
+                setShowAvailableOnly(false);
+                setPriceRange([0, 10000]);
+                setSortBy('price');
+              }}
+            >
+              <i className="fas fa-refresh me-2"></i>
+              Reset Filters
+            </button>
           </div>
         )}
 
-
+        {/* Why Choose Us Section */}
+        {filteredAndSortedRooms.length > 0 && (
+          <div className="row mt-5 pt-5 border-top">
+            <div className="col-12 text-center mb-4">
+              <h3 className="fw-bold">Why Book With ZENStay?</h3>
+            </div>
+            <div className="col-md-3 text-center mb-3">
+              <i className="fas fa-shield-alt fa-2x text-primary mb-2"></i>
+              <h6 className="fw-bold">Secure Booking</h6>
+              <small className="text-muted">100% Safe & Secure</small>
+            </div>
+            <div className="col-md-3 text-center mb-3">
+              <i className="fas fa-tags fa-2x text-success mb-2"></i>
+              <h6 className="fw-bold">Best Price</h6>
+              <small className="text-muted">Guaranteed Low Rates</small>
+            </div>
+            <div className="col-md-3 text-center mb-3">
+              <i className="fas fa-headset fa-2x text-info mb-2"></i>
+              <h6 className="fw-bold">24/7 Support</h6>
+              <small className="text-muted">Round the Clock Help</small>
+            </div>
+            <div className="col-md-3 text-center mb-3">
+              <i className="fas fa-undo fa-2x text-warning mb-2"></i>
+              <h6 className="fw-bold">Free Cancellation</h6>
+              <small className="text-muted">Cancel Anytime</small>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

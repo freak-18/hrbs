@@ -41,14 +41,33 @@ body {
 
 /* --- Custom Bootstrap Overrides --- */
 .btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  font-weight: 500;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  border: none;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
-  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+  border: none;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--warning) 0%, #eab308 100%);
+  border: none;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+  border: none;
 }
 
 .text-primary {
@@ -56,50 +75,48 @@ body {
 }
 
 .bg-primary {
-  background-color: var(--primary-color) !important;
-}
-
-/* --- Room Card Hover Effects --- */
-.room-card {
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
-}
-
-.room-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-color);
-}
-
-.room-card .card-img-top {
-  transition: transform 0.3s ease;
-}
-
-.room-card:hover .card-img-top {
-  transform: scale(1.05);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
 }
 
 /* --- Navigation Enhancements --- */
+.navbar {
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+.navbar-brand {
+  font-weight: 800 !important;
+  font-size: 1.8rem !important;
+}
+
 .navbar-nav .nav-link {
   transition: all 0.3s ease;
   border-radius: var(--border-radius);
   margin: 0 4px;
+  font-weight: 500;
 }
 
 .navbar-nav .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
-/* --- Form Enhancements --- */
-.form-control:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+/* --- Hero Section --- */
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
 }
 
-.form-control-lg {
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+  opacity: 0.3;
 }
 
 /* --- Card Enhancements --- */
@@ -107,42 +124,157 @@ body {
   border: none;
   border-radius: var(--border-radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
 }
 
 .card-header {
   border-bottom: 1px solid var(--border-color);
   font-weight: 600;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
 }
 
-/* --- Button Enhancements --- */
-.btn {
-  border-radius: var(--border-radius);
-  font-weight: 500;
+/* --- Room Card Hover Effects --- */
+.room-card {
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.room-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+.room-card .card-img-top {
+  transition: transform 0.3s ease;
+  height: 250px;
+  object-fit: cover;
+}
+
+.room-card:hover .card-img-top {
+  transform: scale(1.05);
+}
+
+/* --- Destination Cards --- */
+.destination-card {
+  overflow: hidden;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
+.destination-card:hover {
+  transform: translateY(-5px);
 }
 
-.btn-group .btn {
-  transform: none;
+.destination-card img {
+  transition: transform 0.3s ease;
 }
 
-.btn-group .btn:hover {
-  transform: translateY(-1px);
+.destination-card:hover img {
+  transform: scale(1.1);
 }
 
-/* --- Badge Enhancements --- */
-.badge {
-  font-weight: 500;
+.bg-gradient-dark {
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+}
+
+/* --- Form Enhancements --- */
+.form-control {
+  border: 2px solid var(--border-color);
   border-radius: var(--border-radius);
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+}
+
+.form-control-lg {
+  padding: 15px 20px;
+  font-size: 1rem;
+}
+
+/* --- Feature Icons --- */
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Price Badge --- */
+.price-badge {
+  background: linear-gradient(135deg, var(--accent-color) 0%, #ff4500 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+}
+
+/* --- Amenities --- */
+.amenity-badge {
+  background-color: #e3f2fd;
+  color: var(--primary-color);
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 2px;
+  display: inline-block;
+}
+
+/* --- Admin Panel Styling --- */
+.admin-sidebar {
+  background: linear-gradient(180deg, var(--secondary-color) 0%, #0a1929 100%);
+  min-height: 100vh;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.admin-nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 20px;
+  border-radius: var(--border-radius);
+  margin: 5px 10px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: block;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(5px);
+}
+
+.stats-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-md);
 }
 
 /* --- Table Enhancements --- */
 .table {
   border-radius: var(--border-radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .table thead th {
@@ -151,6 +283,7 @@ body {
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
+  background-color: var(--light-bg);
 }
 
 .table tbody tr {
@@ -166,36 +299,92 @@ body {
   border: none;
   border-radius: var(--border-radius-lg);
   font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Badge Enhancements --- */
+.badge {
+  font-weight: 500;
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+}
+
+/* --- Button Enhancements --- */
+.btn {
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-group .btn {
+  transform: none;
+}
+
+.btn-group .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* --- Search Form --- */
+.search-form {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+/* --- Booking Summary --- */
+.booking-summary {
+  position: sticky;
+  top: 20px;
+}
+
+.summary-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary-color);
 }
 
 /* --- Loading Spinner --- */
-.spinner-border {
-  width: 2rem;
-  height: 2rem;
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
-/* --- Responsive Utilities --- */
-@media (max-width: 768px) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+/* --- Animations --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
-  
-  .card-body {
-    padding: 1.5rem;
-  }
-  
-  .btn-group {
-    flex-direction: column;
-  }
-  
-  .btn-group .btn {
-    border-radius: var(--border-radius) !important;
-    margin-bottom: 0.25rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* --- Animation Classes --- */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }
@@ -208,6 +397,39 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 60vh;
+  }
+  
+  .display-3 {
+    font-size: 2.5rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .btn-group .btn {
+    border-radius: var(--border-radius) !important;
+    margin-bottom: 0.25rem;
+  }
+  
+  .room-card:hover {
+    transform: translateY(-4px);
   }
 }
 
@@ -228,9 +450,9 @@ body {
   border-radius: var(--border-radius-lg);
 }
 
-/* --- Icon Enhancements --- */
-.fas, .far {
-  font-size: inherit;
+/* --- Footer --- */
+footer {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #0a1929 100%);
 }
 
 /* --- Sticky Elements --- */

@@ -16,6 +16,7 @@ const BookingForm = ({ room = {} }) => {
 
   const validate = () => {
     const errs = [];
+    if (!room?.roomId) errs.push('Room information is missing');
     if (!form.guestName) errs.push('Name is required');
     if (!form.guestEmail) {
       errs.push('Email is required');
@@ -48,7 +49,12 @@ const BookingForm = ({ room = {} }) => {
       await createBooking({ ...form, roomId: room?.roomId });
       setMessage('Booking created successfully');
     } catch (err) {
-      setMessage('Booking failed due to backend');
+      console.error('Booking error:', err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          err.message || 
+                          'Booking failed due to server error';
+      setMessage(`Booking failed: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -36,12 +37,19 @@ public ResponseEntity<?> createBooking(@RequestBody Map<String, Object> payload)
         Room room = roomRepository.findById(roomId)
             .orElseThrow(() -> new RuntimeException("Room not found with id: " + roomId));
 
+        // Calculate total price
+        long nights = checkOut.toEpochDay() - checkIn.toEpochDay();
+        double totalPrice = nights * room.getPricePerNight();
+
         Booking booking = new Booking();
         booking.setRoom(room);
         booking.setGuestName(guestName);
         booking.setGuestEmail(guestEmail);
         booking.setCheckInDate(checkIn);
         booking.setCheckOutDate(checkOut);
+        booking.setTotalPrice(totalPrice);
+        booking.setStatus("PENDING");
+        booking.setCreatedAt(LocalDateTime.now());
 
         Booking saved = bookingService.createBooking(booking);
         return ResponseEntity.status(201).body(saved);
