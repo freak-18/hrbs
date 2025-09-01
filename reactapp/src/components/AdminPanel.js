@@ -28,11 +28,9 @@ function AdminPanel() {
       });
       
       setBookings(mergedBookings.filter(b => b.status?.toUpperCase() === 'PENDING'));
-    } catch {
-      // Fallback: Load from localStorage
-      const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-      setBookings(localBookings.filter(b => b.status?.toUpperCase() === 'PENDING'));
       setError(null);
+    } catch {
+      setError('Error loading bookings');
     } finally {
       setLoading(false);
     }
@@ -124,18 +122,8 @@ function AdminPanel() {
       eventBus.emit(EVENTS.BOOKING_UPDATED, { bookingId: id, status });
       eventBus.emit(EVENTS.DATA_REFRESH, { source: 'admin' });
     } catch (err) {
-      // Fallback: Update localStorage even if API fails
-      const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-      const updatedBookings = existingBookings.map(booking => 
-        booking.bookingId === id ? { ...booking, status } : booking
-      );
-      localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
-      
-      setBookings(prev => prev.filter(b => b.bookingId !== id));
-      eventBus.emit(EVENTS.BOOKING_UPDATED, { bookingId: id, status });
-      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'admin' });
-      
-      setMessage(`Booking ${id} has been ${status.toLowerCase()}`);
+      const errorMessage = err.response?.data?.message || 'Update error';
+      setMessage(errorMessage);
     } finally {
       setProcessingId(null);
     }
@@ -291,7 +279,10 @@ function AdminPanel() {
                                 {processingId === booking.bookingId ? (
                                   <span className="spinner-border spinner-border-sm"></span>
                                 ) : (
-                                  <i className="fas fa-check"></i>
+                                  <>
+                                    <i className="fas fa-check"></i>
+                                    <span className="visually-hidden">Approve</span>
+                                  </>
                                 )}
                               </button>
                               <button
@@ -303,7 +294,10 @@ function AdminPanel() {
                                 {processingId === booking.bookingId ? (
                                   <span className="spinner-border spinner-border-sm"></span>
                                 ) : (
-                                  <i className="fas fa-times"></i>
+                                  <>
+                                    <i className="fas fa-times"></i>
+                                    <span className="visually-hidden">Reject</span>
+                                  </>
                                 )}
                               </button>
                             </div>
