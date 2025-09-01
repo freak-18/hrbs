@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getBookings, updateBookingStatus } from '../utils/api';
+import { eventBus, EVENTS } from '../utils/eventBus';
 
 function AdminPanel() {
   const [bookings, setBookings] = useState([]);
@@ -8,24 +9,65 @@ function AdminPanel() {
   const [message, setMessage] = useState('');
   const [processingId, setProcessingId] = useState(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await getBookings();
-        // Show only pending bookings for main admin panel
-        setBookings(
-          res.data.filter(b => b.status?.toUpperCase() === 'PENDING')
+  const fetchData = async () => {
+    try {
+      const res = await getBookings();
+      const apiBookings = res.data || [];
+      
+      // Merge with localStorage bookings
+      const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      const mergedBookings = [...apiBookings];
+      
+      localBookings.forEach(localBooking => {
+        const exists = apiBookings.some(apiBooking => 
+          apiBooking.bookingId === localBooking.bookingId
         );
-      } catch {
-        setError('Error loading bookings');
-      } finally {
-        setLoading(false);
-      }
+        if (!exists) {
+          mergedBookings.push(localBooking);
+        }
+      });
+      
+      setBookings(mergedBookings.filter(b => b.status?.toUpperCase() === 'PENDING'));
+    } catch {
+      // Fallback: Load from localStorage
+      const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      setBookings(localBookings.filter(b => b.status?.toUpperCase() === 'PENDING'));
+      setError(null);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchData();
+    
+    // Listen for new bookings from main website
+    const handleNewBooking = () => {
+      fetchData();
+    };
+    
+    const handleBookingUpdate = (data) => {
+      if (data.status === 'CANCELLED') {
+        // Remove cancelled booking from state
+        setBookings(prev => prev.filter(b => b.bookingId !== data.bookingId));
+      }
+    };
+    
+    const handleDataRefresh = () => {
+      fetchData();
+    };
+    
+    eventBus.on(EVENTS.BOOKING_CREATED, handleNewBooking);
+    eventBus.on(EVENTS.BOOKING_UPDATED, handleBookingUpdate);
+    eventBus.on(EVENTS.DATA_REFRESH, handleDataRefresh);
+    
+    return () => {
+      eventBus.off(EVENTS.BOOKING_CREATED, handleNewBooking);
+      eventBus.off(EVENTS.BOOKING_UPDATED, handleBookingUpdate);
+      eventBus.off(EVENTS.DATA_REFRESH, handleDataRefresh);
+    };
   }, []);
 
-  // Refresh admin panel when page becomes visible
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -33,9 +75,7 @@ function AdminPanel() {
         async function refreshData() {
           try {
             const res = await getBookings();
-            setBookings(
-              res.data.filter(b => b.status?.toUpperCase() === 'PENDING')
-            );
+            setBookings(res.data.filter(b => b.status?.toUpperCase() === 'PENDING'));
             setError(null);
           } catch {
             setError('Error loading bookings');
@@ -56,16 +96,50 @@ function AdminPanel() {
     try {
       await updateBookingStatus(id, status);
       setMessage(`Booking ${id} has been ${status.toLowerCase()}`);
-      // Remove updated booking from list
+      
+      // Update local state
       setBookings(prev => prev.filter(b => b.bookingId !== id));
+      
+      // Update localStorage to persist changes
+      const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      const updatedBookings = existingBookings.map(booking => 
+        booking.bookingId === id ? { ...booking, status } : booking
+      );
+      localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
+      
+      // Update room availability if approved
+      if (status === 'APPROVED') {
+        const booking = existingBookings.find(b => b.bookingId === id);
+        if (booking && booking.roomId) {
+          const existingRooms = JSON.parse(localStorage.getItem('hotelRooms') || '[]');
+          const updatedRooms = existingRooms.map(room => 
+            room.roomId === booking.roomId ? { ...room, available: false } : room
+          );
+          localStorage.setItem('hotelRooms', JSON.stringify(updatedRooms));
+          eventBus.emit(EVENTS.ROOM_UPDATED, { roomId: booking.roomId, available: false });
+        }
+      }
+      
+      // Emit events for real-time updates
+      eventBus.emit(EVENTS.BOOKING_UPDATED, { bookingId: id, status });
+      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'admin' });
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Update failed');
+      // Fallback: Update localStorage even if API fails
+      const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      const updatedBookings = existingBookings.map(booking => 
+        booking.bookingId === id ? { ...booking, status } : booking
+      );
+      localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
+      
+      setBookings(prev => prev.filter(b => b.bookingId !== id));
+      eventBus.emit(EVENTS.BOOKING_UPDATED, { bookingId: id, status });
+      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'admin' });
+      
+      setMessage(`Booking ${id} has been ${status.toLowerCase()}`);
     } finally {
       setProcessingId(null);
     }
   };
-
-
 
   if (loading) return (
     <div className="container py-5 text-center">
@@ -87,7 +161,6 @@ function AdminPanel() {
 
   return (
     <div className="container py-4">
-      {/* Admin Header */}
       <div className="row mb-4">
         <div className="col-12">
           <div className="card bg-primary text-white border-0">
@@ -114,7 +187,6 @@ function AdminPanel() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
       {message && (
         <div className="row mb-4">
           <div className="col-12">
@@ -127,7 +199,6 @@ function AdminPanel() {
         </div>
       )}
 
-      {/* Pending Bookings */}
       <div className="row">
         <div className="col-12">
           <div className="card shadow-sm border-0">
@@ -215,25 +286,25 @@ function AdminPanel() {
                                 className="btn btn-success btn-sm"
                                 onClick={() => handleUpdate(booking.bookingId, 'APPROVED')}
                                 disabled={processingId === booking.bookingId}
+                                title="Approve Booking"
                               >
                                 {processingId === booking.bookingId ? (
-                                  <span className="spinner-border spinner-border-sm me-1"></span>
+                                  <span className="spinner-border spinner-border-sm"></span>
                                 ) : (
-                                  <i className="fas fa-check me-1"></i>
+                                  <i className="fas fa-check"></i>
                                 )}
-                                Approve
                               </button>
                               <button
                                 className="btn btn-danger btn-sm"
                                 onClick={() => handleUpdate(booking.bookingId, 'REJECTED')}
                                 disabled={processingId === booking.bookingId}
+                                title="Reject Booking"
                               >
                                 {processingId === booking.bookingId ? (
-                                  <span className="spinner-border spinner-border-sm me-1"></span>
+                                  <span className="spinner-border spinner-border-sm"></span>
                                 ) : (
-                                  <i className="fas fa-times me-1"></i>
+                                  <i className="fas fa-times"></i>
                                 )}
-                                Reject
                               </button>
                             </div>
                           </td>

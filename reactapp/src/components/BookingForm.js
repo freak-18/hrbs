@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createBooking } from '../utils/api';
 import { Link } from 'react-router-dom';
+import { eventBus, EVENTS } from '../utils/eventBus';
 
 const BookingForm = ({ room = {} }) => {
   // Safe navigation that works in both test and production environments
@@ -72,6 +73,10 @@ const BookingForm = ({ room = {} }) => {
       const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
       existingBookings.push(newBooking);
       localStorage.setItem('hotelBookings', JSON.stringify(existingBookings));
+      
+      // Emit event for real-time updates
+      eventBus.emit(EVENTS.BOOKING_CREATED, newBooking);
+      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'booking_created' });
       
       setMessage('Booking created successfully');
       

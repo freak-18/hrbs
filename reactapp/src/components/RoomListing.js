@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getRooms } from '../utils/api';
 import { Link } from 'react-router-dom';
+import { eventBus, EVENTS } from '../utils/eventBus';
 
 
 
@@ -14,6 +15,36 @@ function RoomListing() {
 
   useEffect(() => {
     fetchRooms(showAvailableOnly);
+    
+    // Listen for real-time room updates
+    const handleRoomUpdate = (data) => {
+      setRooms(prev => prev.map(room => 
+        room.roomId === data.roomId 
+          ? { ...room, available: data.available }
+          : room
+      ));
+    };
+    
+    const handleDataRefresh = () => {
+      fetchRooms(showAvailableOnly);
+    };
+    
+    // Cross-tab communication
+    const handleStorageUpdate = (event) => {
+      if (event.detail?.event === EVENTS.ROOM_UPDATED || event.detail?.event === EVENTS.DATA_REFRESH) {
+        fetchRooms(showAvailableOnly);
+      }
+    };
+    
+    eventBus.on(EVENTS.ROOM_UPDATED, handleRoomUpdate);
+    eventBus.on(EVENTS.DATA_REFRESH, handleDataRefresh);
+    window.addEventListener('hotel-data-update', handleStorageUpdate);
+    
+    return () => {
+      eventBus.off(EVENTS.ROOM_UPDATED, handleRoomUpdate);
+      eventBus.off(EVENTS.DATA_REFRESH, handleDataRefresh);
+      window.removeEventListener('hotel-data-update', handleStorageUpdate);
+    };
   }, [showAvailableOnly]);
 
 

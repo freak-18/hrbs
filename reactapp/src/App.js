@@ -113,7 +113,7 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn }) {
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link text-white px-3 py-2 rounded" to="/rooms">
-                    <i className="fas fa-bed me-1"></i> Hotels
+                    <i className="fas fa-bed me-1"></i> Rooms
                   </Link>
                 </li>
                 <li className="nav-item">

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getBookings, cancelBooking } from '../utils/api';
+import { eventBus, EVENTS } from '../utils/eventBus';
 
 function BookingList() {
   const [bookings, setBookings] = useState([]);
@@ -8,46 +9,77 @@ function BookingList() {
   const [filter, setFilter] = useState('all');
   const [cancellingId, setCancellingId] = useState(null);
 
-  useEffect(() => {
-    async function fetchBookings() {
-      try {
-        const res = await getBookings();
-        const apiBookings = res.data || [];
-        
-        // Merge with localStorage bookings to ensure all bookings are shown
-        const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-        const mergedBookings = [...apiBookings];
-        
-        // Add local bookings that aren't in API response
-        localBookings.forEach(localBooking => {
-          const exists = apiBookings.some(apiBooking => 
-            apiBooking.bookingId === localBooking.bookingId
-          );
-          if (!exists) {
-            mergedBookings.push(localBooking);
-          }
-        });
-        
-        setBookings(mergedBookings);
-        setError('');
-      } catch (err) {
-        if (process.env.NODE_ENV === 'test') {
-          setError('Could not load bookings');
-        } else {
-          // Fallback: Load from localStorage
-          const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-          setBookings(localBookings);
-          if (localBookings.length === 0) {
-            setError('No bookings found');
-          } else {
-            setError('');
-          }
+  const fetchBookings = async () => {
+    try {
+      const res = await getBookings();
+      const apiBookings = res.data || [];
+      
+      // Merge with localStorage bookings to ensure all bookings are shown
+      const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      const mergedBookings = [...apiBookings];
+      
+      // Add local bookings that aren't in API response
+      localBookings.forEach(localBooking => {
+        const exists = apiBookings.some(apiBooking => 
+          apiBooking.bookingId === localBooking.bookingId
+        );
+        if (!exists) {
+          mergedBookings.push(localBooking);
         }
-      } finally {
-        setLoading(false);
+      });
+      
+      setBookings(mergedBookings);
+      setError('');
+    } catch (err) {
+      if (process.env.NODE_ENV === 'test') {
+        setError('Could not load bookings');
+      } else {
+        // Fallback: Load from localStorage
+        const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+        setBookings(localBookings);
+        if (localBookings.length === 0) {
+          setError('No bookings found');
+        } else {
+          setError('');
+        }
       }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchBookings();
+    
+    // Listen for real-time updates
+    const handleBookingUpdate = (data) => {
+      setBookings(prev => prev.map(booking => 
+        booking.bookingId === data.bookingId 
+          ? { ...booking, status: data.status }
+          : booking
+      ));
+    };
+    
+    const handleDataRefresh = () => {
+      fetchBookings();
+    };
+    
+    // Cross-tab communication
+    const handleStorageUpdate = (event) => {
+      if (event.detail?.event === EVENTS.BOOKING_UPDATED || event.detail?.event === EVENTS.DATA_REFRESH) {
+        fetchBookings();
+      }
+    };
+    
+    eventBus.on(EVENTS.BOOKING_UPDATED, handleBookingUpdate);
+    eventBus.on(EVENTS.DATA_REFRESH, handleDataRefresh);
+    window.addEventListener('hotel-data-update', handleStorageUpdate);
+    
+    return () => {
+      eventBus.off(EVENTS.BOOKING_UPDATED, handleBookingUpdate);
+      eventBus.off(EVENTS.DATA_REFRESH, handleDataRefresh);
+      window.removeEventListener('hotel-data-update', handleStorageUpdate);
+    };
   }, []);
 
   // Refresh bookings when page becomes visible
@@ -137,9 +169,23 @@ function BookingList() {
   };
 
   const handleCancel = async (bookingId) => {
+    const booking = bookings.find(b => b.bookingId === bookingId);
+    const isRejected = booking?.status === 'REJECTED';
+    
+    const confirmMessage = isRejected 
+      ? `Are you sure you want to remove booking #${bookingId} from your list?`
+      : `Are you sure you want to cancel booking #${bookingId}?`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+    
     setCancellingId(bookingId);
     try {
-      await cancelBooking(bookingId);
+      if (!isRejected) {
+        await cancelBooking(bookingId);
+      }
+      
       // Remove from both state and localStorage
       const updatedBookings = bookings.filter(b => b.bookingId !== bookingId);
       setBookings(updatedBookings);
@@ -148,11 +194,19 @@ function BookingList() {
       const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
       const updatedLocalBookings = localBookings.filter(b => b.bookingId !== bookingId);
       localStorage.setItem('hotelBookings', JSON.stringify(updatedLocalBookings));
+      
+      // Emit events for admin panel sync
+      eventBus.emit(EVENTS.BOOKING_UPDATED, { bookingId, status: 'CANCELLED' });
+      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'user_cancel' });
     } catch (err) {
       // Fallback: Remove from localStorage
       const updatedBookings = bookings.filter(b => b.bookingId !== bookingId);
       setBookings(updatedBookings);
       localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
+      
+      // Emit events for admin panel sync
+      eventBus.emit(EVENTS.BOOKING_UPDATED, { bookingId, status: 'CANCELLED' });
+      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'user_cancel' });
     } finally {
       setCancellingId(null);
     }
@@ -488,6 +542,20 @@ function BookingList() {
                             <i className="fas fa-times me-1"></i>
                           )}
                           Cancel
+                        </button>
+                      )}
+                      {booking.status === 'REJECTED' && (
+                        <button 
+                          className="btn btn-danger btn-sm flex-fill"
+                          onClick={() => handleCancel(booking.bookingId)}
+                          disabled={cancellingId === booking.bookingId}
+                        >
+                          {cancellingId === booking.bookingId ? (
+                            <span className="spinner-border spinner-border-sm me-1"></span>
+                          ) : (
+                            <i className="fas fa-trash me-1"></i>
+                          )}
+                          Remove
                         </button>
                       )}
                     </div>
