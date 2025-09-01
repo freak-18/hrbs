@@ -12,7 +12,24 @@ function BookingList() {
     async function fetchBookings() {
       try {
         const res = await getBookings();
-        setBookings(res.data);
+        const apiBookings = res.data || [];
+        
+        // Merge with localStorage bookings to ensure all bookings are shown
+        const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+        const mergedBookings = [...apiBookings];
+        
+        // Add local bookings that aren't in API response
+        localBookings.forEach(localBooking => {
+          const exists = apiBookings.some(apiBooking => 
+            apiBooking.bookingId === localBooking.bookingId
+          );
+          if (!exists) {
+            mergedBookings.push(localBooking);
+          }
+        });
+        
+        setBookings(mergedBookings);
+        setError('');
       } catch (err) {
         if (process.env.NODE_ENV === 'test') {
           setError('Could not load bookings');
@@ -22,6 +39,8 @@ function BookingList() {
           setBookings(localBookings);
           if (localBookings.length === 0) {
             setError('No bookings found');
+          } else {
+            setError('');
           }
         }
       } finally {
@@ -39,7 +58,23 @@ function BookingList() {
         async function refreshBookings() {
           try {
             const res = await getBookings();
-            setBookings(res.data);
+            const apiBookings = res.data || [];
+            
+            // Merge with localStorage bookings
+            const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+            const mergedBookings = [...apiBookings];
+            
+            // Add local bookings that aren't in API response
+            localBookings.forEach(localBooking => {
+              const exists = apiBookings.some(apiBooking => 
+                apiBooking.bookingId === localBooking.bookingId
+              );
+              if (!exists) {
+                mergedBookings.push(localBooking);
+              }
+            });
+            
+            setBookings(mergedBookings);
             setError('');
           } catch {
             // Fallback: Load from localStorage
@@ -105,7 +140,14 @@ function BookingList() {
     setCancellingId(bookingId);
     try {
       await cancelBooking(bookingId);
-      setBookings(prev => prev.filter(b => b.bookingId !== bookingId));
+      // Remove from both state and localStorage
+      const updatedBookings = bookings.filter(b => b.bookingId !== bookingId);
+      setBookings(updatedBookings);
+      
+      // Update localStorage to keep it in sync
+      const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+      const updatedLocalBookings = localBookings.filter(b => b.bookingId !== bookingId);
+      localStorage.setItem('hotelBookings', JSON.stringify(updatedLocalBookings));
     } catch (err) {
       // Fallback: Remove from localStorage
       const updatedBookings = bookings.filter(b => b.bookingId !== bookingId);

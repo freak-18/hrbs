@@ -12,7 +12,58 @@ import "./App.css";
 
 function BookingFormWrapper() {
   const { id } = useParams();
-  const room = { roomId: Number(id), roomNumber: id, price: 1500 };
+  const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRoom = () => {
+      // Get rooms from localStorage or use default
+      const savedRooms = localStorage.getItem('hotelRooms');
+      const defaultRooms = [
+        { roomId: 1, roomNumber: '101', roomType: 'Deluxe Room', pricePerNight: 3500, capacity: 2, available: true, rating: 4.5 },
+        { roomId: 2, roomNumber: '102', roomType: 'Premium Suite', pricePerNight: 5500, capacity: 4, available: true, rating: 4.7 },
+        { roomId: 3, roomNumber: '201', roomType: 'Executive Room', pricePerNight: 4200, capacity: 3, available: true, rating: 4.3 },
+        { roomId: 4, roomNumber: '202', roomType: 'Royal Suite', pricePerNight: 8500, capacity: 4, available: true, rating: 4.9 },
+        { roomId: 5, roomNumber: '301', roomType: 'Business Room', pricePerNight: 4800, capacity: 2, available: true, rating: 4.4 }
+      ];
+      
+      const rooms = savedRooms ? JSON.parse(savedRooms) : defaultRooms;
+      const foundRoom = rooms.find(r => r.roomId === Number(id));
+      
+      if (foundRoom) {
+        setRoom({
+          ...foundRoom,
+          price: foundRoom.pricePerNight || foundRoom.price || 1500
+        });
+      } else {
+        // Fallback room if not found
+        setRoom({
+          roomId: Number(id),
+          roomNumber: id,
+          roomType: 'Standard Room',
+          price: 1500,
+          pricePerNight: 1500,
+          capacity: 2,
+          available: true,
+          rating: 4.0
+        });
+      }
+      setLoading(false);
+    };
+
+    fetchRoom();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container py-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading room details...</span>
+        </div>
+      </div>
+    );
+  }
+
   return <BookingForm room={room} />;
 }
 
