@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBooking } from '../utils/api';
 import { Link } from 'react-router-dom';
 import { eventBus, EVENTS } from '../utils/eventBus';
@@ -20,6 +20,19 @@ const BookingForm = ({ room = {} }) => {
     checkInDate: '',
     checkOutDate: ''
   });
+
+  useEffect(() => {
+    // Pre-fill form with user data if logged in
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setForm(prev => ({
+        ...prev,
+        guestName: user.name || '',
+        guestEmail: user.email || ''
+      }));
+    }
+  }, []);
   const [errors, setErrors] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);

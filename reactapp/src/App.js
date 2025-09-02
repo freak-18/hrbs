@@ -7,6 +7,8 @@ import AdminPanel from "./components/AdminPanel";
 import BookingForm from "./components/BookingForm";
 import BookingList from "./components/BookingList";
 import RoomListing from "./components/RoomListing";
+import UserLogin from "./components/UserLogin";
+import ProtectedRoute from "./components/ProtectedRoute";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
@@ -69,30 +71,36 @@ function BookingFormWrapper() {
 
 function App() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
 
   useEffect(() => {
     const adminStatus = localStorage.getItem('adminLoggedIn');
+    const userStatus = localStorage.getItem('userLoggedIn');
     setIsAdminLoggedIn(adminStatus === 'true');
+    setIsUserLoggedIn(userStatus === 'true');
   }, []);
 
   return (
     <Router>
       <AppContent 
         isAdminLoggedIn={isAdminLoggedIn} 
-        setIsAdminLoggedIn={setIsAdminLoggedIn} 
+        setIsAdminLoggedIn={setIsAdminLoggedIn}
+        isUserLoggedIn={isUserLoggedIn}
+        setIsUserLoggedIn={setIsUserLoggedIn}
       />
     </Router>
   );
 }
 
-function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn }) {
+function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIsUserLoggedIn }) {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isLoginPage = location.pathname === '/login';
   const isHomePage = location.pathname === '/';
 
   return (
     <>
-      {!isAdminRoute && (
+      {!isAdminRoute && !isLoginPage && (
         <nav className="navbar navbar-expand-lg" style={{backgroundColor: '#051423', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
           <div className="container">
             <Link className="navbar-brand text-white fw-bold fs-3" to="/">
@@ -121,6 +129,32 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn }) {
                     <i className="fas fa-calendar-check me-1"></i> My Bookings
                   </Link>
                 </li>
+                {isUserLoggedIn && (
+                  <li className="nav-item">
+                    <span className="nav-link text-white px-3 py-2">
+                      <i className="fas fa-user me-1"></i>
+                      Welcome, {JSON.parse(localStorage.getItem('userData') || '{}').name || 'User'}
+                    </span>
+                  </li>
+                )}
+                <li className="nav-item">
+                  {isUserLoggedIn ? (
+                    <button 
+                      className="nav-link text-white px-3 py-2 rounded btn btn-link border-0"
+                      onClick={() => {
+                        localStorage.removeItem('userLoggedIn');
+                        localStorage.removeItem('userData');
+                        setIsUserLoggedIn(false);
+                      }}
+                    >
+                      <i className="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                  ) : (
+                    <Link className="nav-link text-white px-3 py-2 rounded" to="/login">
+                      <i className="fas fa-sign-in-alt me-1"></i> Login
+                    </Link>
+                  )}
+                </li>
                 <li className="nav-item">
                   <Link className="nav-link text-white px-3 py-2 rounded" to="/admin">
                     <i className="fas fa-cog me-1"></i> Admin
@@ -132,12 +166,29 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn }) {
         </nav>
       )}
 
-      <div className={isHomePage ? '' : 'min-vh-100'} style={isHomePage ? {} : {backgroundColor: '#f5f7fa'}}>
+      <div className={isHomePage && !isLoginPage ? '' : 'min-vh-100'} style={isHomePage && !isLoginPage ? {} : {backgroundColor: '#f5f7fa'}}>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/rooms" element={<RoomListing />} />
-          <Route path="/bookings" element={<BookingList />} />
-          <Route path="/book/:id" element={<BookingFormWrapper />} />
+          <Route path="/login" element={<UserLogin onLogin={setIsUserLoggedIn} />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/rooms" element={
+            <ProtectedRoute>
+              <RoomListing />
+            </ProtectedRoute>
+          } />
+          <Route path="/bookings" element={
+            <ProtectedRoute>
+              <BookingList />
+            </ProtectedRoute>
+          } />
+          <Route path="/book/:id" element={
+            <ProtectedRoute>
+              <BookingFormWrapper />
+            </ProtectedRoute>
+          } />
           
           <Route 
             path="/admin" 
@@ -158,30 +209,97 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn }) {
         </Routes>
       </div>
 
-      {!isAdminRoute && (
-        <footer className="bg-dark text-white py-4 mt-5">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-6">
-                <h5 className="fw-bold mb-3">
-                  <i className="fas fa-building me-2" style={{color: '#ff6b35'}}></i>
-                  ZENStay
-                </h5>
-                <p className="text-muted">Your trusted partner for comfortable stays.</p>
+      {!isAdminRoute && !isLoginPage && (
+        <footer className="footer-modern">
+          <div className="container py-5">
+            <div className="row g-4">
+              <div className="col-lg-4 col-md-6">
+                <div className="footer-brand mb-4">
+                  <h4 className="fw-bold text-white mb-3">
+                    <i className="fas fa-building me-2" style={{color: '#ff6b35'}}></i>
+                    ZENStay
+                  </h4>
+                  <p className="footer-description mb-4">
+                    Experience luxury and comfort with our premium hotel booking service. 
+                    Your perfect stay is just a click away.
+                  </p>
+                  <div className="social-links">
+                    <a href="#" className="social-link me-3">
+                      <i className="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" className="social-link me-3">
+                      <i className="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" className="social-link me-3">
+                      <i className="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" className="social-link">
+                      <i className="fab fa-linkedin-in"></i>
+                    </a>
+                  </div>
+                </div>
               </div>
-              <div className="col-md-3">
-                <h6 className="fw-bold mb-3">Quick Links</h6>
-                <ul className="list-unstyled">
-                  <li><Link to="/rooms" className="text-muted text-decoration-none">Hotels</Link></li>
-                  <li><Link to="/bookings" className="text-muted text-decoration-none">Bookings</Link></li>
+              
+              <div className="col-lg-2 col-md-6">
+                <h6 className="footer-title mb-3">Quick Links</h6>
+                <ul className="footer-links">
+                  <li><Link to="/" className="footer-link">Home</Link></li>
+                  <li><Link to="/rooms" className="footer-link">Rooms</Link></li>
+                  <li><Link to="/bookings" className="footer-link">My Bookings</Link></li>
                 </ul>
               </div>
-              <div className="col-md-3">
-                <h6 className="fw-bold mb-3">Contact</h6>
-                <p className="text-muted small">
-                  <i className="fas fa-phone me-2"></i>+91 12345 67890<br/>
-                  <i className="fas fa-envelope me-2"></i>info@zenstay.com
+              
+              <div className="col-lg-3 col-md-6">
+                <h6 className="footer-title mb-3">Contact Info</h6>
+                <div className="contact-info">
+                  <div className="contact-item mb-2">
+                    <i className="fas fa-phone me-2 contact-icon"></i>
+                    <span>+91 12345 67890</span>
+                  </div>
+                  <div className="contact-item mb-2">
+                    <i className="fas fa-envelope me-2 contact-icon"></i>
+                    <span>info@zenstay.com</span>
+                  </div>
+                  <div className="contact-item">
+                    <i className="fas fa-map-marker-alt me-2 contact-icon"></i>
+                    <span>Mumbai, India</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="col-lg-3 col-md-6">
+                <h6 className="footer-title mb-3">Newsletter</h6>
+                <p className="footer-newsletter-text mb-3">
+                  Subscribe to get special offers and updates
                 </p>
+                <div className="newsletter-form">
+                  <div className="input-group">
+                    <input 
+                      type="email" 
+                      className="form-control newsletter-input" 
+                      placeholder="Your email"
+                    />
+                    <button className="btn newsletter-btn" type="button">
+                      <i className="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <hr className="footer-divider my-4" />
+            
+            <div className="row align-items-center">
+              <div className="col-md-6">
+                <p className="footer-copyright mb-0">
+                  © 2024 ZENStay. All rights reserved.
+                </p>
+              </div>
+              <div className="col-md-6 text-md-end">
+                <div className="footer-legal">
+                  <a href="#" className="footer-legal-link me-3">Privacy Policy</a>
+                  <a href="#" className="footer-legal-link">Terms of Service</a>
+                </div>
               </div>
             </div>
           </div>

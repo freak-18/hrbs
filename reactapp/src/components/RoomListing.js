@@ -371,14 +371,7 @@ function RoomListing() {
                     </div>
                     
                     {room.available !== false ? (
-                      <SafeLink 
-                        to={`/book/${room.roomId}`}
-                        className="btn btn-primary w-100 fw-semibold"
-                        data-testid={`book-btn-${room.roomId}`}
-                      >
-                        <i className="fas fa-calendar-check me-2"></i>
-                        Book Now
-                      </SafeLink>
+                      <BookingButton roomId={room.roomId} />
                     ) : (
                       <button 
                         className="btn btn-outline-secondary w-100" 
@@ -472,6 +465,35 @@ const SafeLink = ({ to, children, ...props }) => {
     return <a {...props} href={to}>{children}</a>;
   }
   return <Link to={to} {...props}>{children}</Link>;
+};
+
+// BookingButton component that checks login status
+const BookingButton = ({ roomId }) => {
+  const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+  
+  if (isUserLoggedIn) {
+    return (
+      <SafeLink 
+        to={`/book/${roomId}`}
+        className="btn btn-primary w-100 fw-semibold"
+        data-testid={`book-btn-${roomId}`}
+      >
+        <i className="fas fa-calendar-check me-2"></i>
+        Book Now
+      </SafeLink>
+    );
+  }
+  
+  return (
+    <SafeLink 
+      to="/login"
+      className="btn btn-outline-primary w-100 fw-semibold"
+      data-testid={`book-btn-${roomId}`}
+    >
+      <i className="fas fa-sign-in-alt me-2"></i>
+      Login to Book
+    </SafeLink>
+  );
 };
 
 export default RoomListing;
