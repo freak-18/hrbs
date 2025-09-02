@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useLocation } from "react-router-dom";
 import HomePage from "./components/HomePage";
-import AdminLogin from "./components/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminPanel from "./components/AdminPanel";
 import BookingForm from "./components/BookingForm";
 import BookingList from "./components/BookingList";
 import RoomListing from "./components/RoomListing";
-import UserLogin from "./components/UserLogin";
+import CombinedLogin from "./components/CombinedLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -155,11 +154,7 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
                     </Link>
                   )}
                 </li>
-                <li className="nav-item">
-                  <Link className="nav-link text-white px-3 py-2 rounded" to="/admin">
-                    <i className="fas fa-cog me-1"></i> Admin
-                  </Link>
-                </li>
+
               </ul>
             </div>
           </div>
@@ -168,7 +163,7 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
 
       <div className={isHomePage && !isLoginPage ? '' : 'min-vh-100'} style={isHomePage && !isLoginPage ? {} : {backgroundColor: '#f5f7fa'}}>
         <Routes>
-          <Route path="/login" element={<UserLogin onLogin={setIsUserLoggedIn} />} />
+          <Route path="/login" element={<CombinedLogin onUserLogin={setIsUserLoggedIn} onAdminLogin={setIsAdminLoggedIn} />} />
           <Route path="/" element={
             <ProtectedRoute>
               <HomePage />
@@ -195,7 +190,7 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
             element={
               isAdminLoggedIn ? 
                 <AdminDashboard onLogout={setIsAdminLoggedIn} /> : 
-                <AdminLogin onLogin={setIsAdminLoggedIn} />
+                <CombinedLogin onUserLogin={setIsUserLoggedIn} onAdminLogin={setIsAdminLoggedIn} />
             } 
           />
           <Route 
@@ -203,7 +198,7 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
             element={
               isAdminLoggedIn ? 
                 <AdminDashboard onLogout={setIsAdminLoggedIn} /> : 
-                <AdminLogin onLogin={setIsAdminLoggedIn} />
+                <CombinedLogin onUserLogin={setIsUserLoggedIn} onAdminLogin={setIsAdminLoggedIn} />
             } 
           />
         </Routes>
