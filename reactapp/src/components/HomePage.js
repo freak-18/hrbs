@@ -87,7 +87,7 @@ const HomePage = () => {
                     </h5>
                   </div>
                   <form onSubmit={handleSearch}>
-                    <div className="row g-3">
+                    <div className="row g-4">
                       <div className="col-lg-3 col-md-6">
                         <label className="form-label fw-semibold">
                           <i className="fas fa-map-marker-alt me-2 text-primary"></i>
@@ -314,9 +314,9 @@ const HomePage = () => {
             {[
               { name: 'Mumbai', image: 'photo-1570168007204-dfb528c6958f', hotels: '1,200+ Hotels', rating: '4.5', price: '₹3,500' },
               { name: 'Delhi', image: 'photo-1587474260584-136574528ed5', hotels: '980+ Hotels', rating: '4.3', price: '₹2,800' },
-              { name: 'Bangalore', image: 'photo-1582510003544-4d00b7f74220', hotels: '750+ Hotels', rating: '4.4', price: '₹3,200' },
+              { name: 'Bangalore', image: 'photo-1596176530529-78163a4f7af2', hotels: '750+ Hotels', rating: '4.4', price: '₹3,200' },
               { name: 'Goa', image: 'photo-1512343879784-a960bf40e7f2', hotels: '450+ Hotels', rating: '4.6', price: '₹4,200' },
-              { name: 'Jaipur', image: 'photo-1599661046827-dacde6976549', hotels: '320+ Hotels', rating: '4.2', price: '₹2,500' },
+              { name: 'Jaipur', image: 'photo-1477587458883-47145ed94245', hotels: '320+ Hotels', rating: '4.2', price: '₹2,500' },
               { name: 'Kerala', image: 'photo-1602216056096-3b40cc0c9944', hotels: '280+ Hotels', rating: '4.7', price: '₹3,800' }
             ].map((dest, idx) => (
               <div key={idx} className="col-lg-4 col-md-6">
@@ -376,12 +376,6 @@ const HomePage = () => {
               <div key={idx} className="col-lg-4 col-md-6">
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body p-4 text-center">
-                    <img 
-                      src={`https://images.unsplash.com/${testimonial.avatar}?w=80&h=80&fit=crop&crop=face`}
-                      className="rounded-circle mb-3"
-                      alt={testimonial.name}
-                      style={{width: '60px', height: '60px', objectFit: 'cover'}}
-                    />
                     <div className="mb-3">
                       {[...Array(testimonial.rating)].map((_, i) => (
                         <i key={i} className="fas fa-star text-warning"></i>

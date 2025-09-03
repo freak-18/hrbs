@@ -71,6 +71,10 @@ const BookingForm = ({ room = {} }) => {
     try {
       const response = await createBooking({ ...form, roomId: room?.roomId || 1 });
       
+      // Get current user data
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId = userData.userId || userData.email || form.guestEmail;
+      
       // Create booking object with API response data
       const newBooking = {
         bookingId: response.data?.bookingId || Date.now(),
@@ -79,7 +83,8 @@ const BookingForm = ({ room = {} }) => {
         room: room,
         totalPrice: totalPrice,
         status: response.data?.status || 'PENDING',
-        createdAt: response.data?.createdAt || new Date().toISOString()
+        createdAt: response.data?.createdAt || new Date().toISOString(),
+        userId: userId
       };
       
       // Store in localStorage for immediate display
@@ -110,6 +115,10 @@ const BookingForm = ({ room = {} }) => {
       // In production, also save to localStorage as fallback after showing error
       if (process.env.NODE_ENV !== 'test') {
         setTimeout(() => {
+          // Get current user data for fallback
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          const userId = userData.userId || userData.email || form.guestEmail;
+          
           // Create booking locally when API fails
           const newBooking = {
             bookingId: Date.now(),
@@ -118,7 +127,8 @@ const BookingForm = ({ room = {} }) => {
             room: room,
             totalPrice: totalPrice,
             status: 'PENDING',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            userId: userId
           };
           
           const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');

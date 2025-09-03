@@ -14,7 +14,7 @@ function AdminPanel() {
       const res = await getBookings();
       const apiBookings = res.data || [];
       
-      // Merge with localStorage bookings
+      // Merge with localStorage bookings - Admin sees ALL bookings
       const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
       const mergedBookings = [...apiBookings];
       

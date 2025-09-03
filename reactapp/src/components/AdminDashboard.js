@@ -29,7 +29,7 @@ const AdminDashboard = ({ onLogout }) => {
       const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
       const localRooms = JSON.parse(localStorage.getItem('hotelRooms') || '[]');
       
-      // Merge bookings
+      // Merge bookings - Admin sees ALL bookings
       const mergedBookings = [...apiBookings];
       localBookings.forEach(localBooking => {
         const exists = apiBookings.some(apiBooking => 
@@ -294,28 +294,49 @@ const AdminDashboard = ({ onLogout }) => {
     if (window.confirm('Make all rooms available? This will cancel all approved bookings.')) {
       try {
         await freeAllRooms();
-        await fetchData();
-        setMessage('All rooms are now available');
         
-        // Emit events for real-time updates
-        eventBus.emit(EVENTS.DATA_REFRESH, { source: 'free_all_rooms' });
-        
-        setTimeout(() => setMessage(''), 3000);
-      } catch (err) {
+        // Update rooms to be available
         const updatedRooms = rooms.map(r => ({...r, available: true}));
+        
+        // Remove all approved bookings
         const updatedBookings = bookings.filter(b => b.status !== 'APPROVED');
         
+        // Update localStorage
+        localStorage.setItem('hotelRooms', JSON.stringify(updatedRooms));
+        localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
+        
+        // Update state
         setRooms(updatedRooms);
         setBookings(updatedBookings);
         setAnalyticsData(generateAnalyticsData(updatedBookings, updatedRooms));
         
+        setMessage('All rooms are now available and approved bookings have been cancelled');
+        
+        // Emit events for real-time updates across all components
+        eventBus.emit(EVENTS.DATA_REFRESH, { source: 'free_all_rooms' });
+        eventBus.emit(EVENTS.BOOKING_UPDATED, { action: 'free_all_rooms' });
+        
+        setTimeout(() => setMessage(''), 3000);
+      } catch (err) {
+        // Fallback: Update localStorage and state directly
+        const updatedRooms = rooms.map(r => ({...r, available: true}));
+        const updatedBookings = bookings.filter(b => b.status !== 'APPROVED');
+        
+        // Update localStorage
         localStorage.setItem('hotelRooms', JSON.stringify(updatedRooms));
         localStorage.setItem('hotelBookings', JSON.stringify(updatedBookings));
         
-        // Emit events for real-time updates
-        eventBus.emit(EVENTS.DATA_REFRESH, { source: 'free_all_rooms' });
+        // Update state
+        setRooms(updatedRooms);
+        setBookings(updatedBookings);
+        setAnalyticsData(generateAnalyticsData(updatedBookings, updatedRooms));
         
-        setMessage('All rooms are now available');
+        setMessage('All rooms are now available and approved bookings have been cancelled');
+        
+        // Emit events for real-time updates across all components
+        eventBus.emit(EVENTS.DATA_REFRESH, { source: 'free_all_rooms' });
+        eventBus.emit(EVENTS.BOOKING_UPDATED, { action: 'free_all_rooms' });
+        
         setTimeout(() => setMessage(''), 3000);
       }
     }

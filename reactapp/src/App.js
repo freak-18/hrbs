@@ -102,9 +102,46 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
       {!isAdminRoute && !isLoginPage && (
         <nav className="navbar navbar-expand-lg" style={{backgroundColor: '#051423', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
           <div className="container">
-            <Link className="navbar-brand text-white fw-bold fs-3" to="/">
-              <i className="fas fa-building me-2" style={{color: '#ff6b35'}}></i>
-              ZENStay
+            <Link className="navbar-brand text-white fw-bold fs-3" to="/" style={{textDecoration: 'none'}}>
+              <span className="d-flex align-items-center">
+                <span className="me-3 logo-icon-animated" style={{
+                  position: 'relative',
+                  display: 'inline-block',
+                  animation: 'logoFloat 3s ease-in-out infinite'
+                }}>
+                  <i className="fas fa-hotel" style={{
+                    color: '#ff6b35',
+                    fontSize: '2rem',
+                    filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))',
+                    transition: 'all 0.3s ease'
+                  }}></i>
+                  <i className="fas fa-star" style={{
+                    position: 'absolute',
+                    top: '-5px',
+                    right: '-5px',
+                    color: '#ffd700',
+                    fontSize: '0.8rem',
+                    animation: 'starTwinkle 2s ease-in-out infinite'
+                  }}></i>
+                </span>
+                <span className="logo-text-animated" style={{
+                  fontFamily: 'serif',
+                  fontSize: '1.8rem',
+                  fontWeight: '700',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+                }}>
+                  <span style={{
+                    color: '#ffffff',
+                    display: 'inline-block',
+                    animation: 'textGlow 4s ease-in-out infinite'
+                  }}>ZEN</span>
+                  <span style={{
+                    color: '#ff6b35',
+                    display: 'inline-block',
+                    animation: 'textGlow 4s ease-in-out infinite 0.5s'
+                  }}>Stay</span>
+                </span>
+              </span>
             </Link>
             
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -210,9 +247,33 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
             <div className="row g-4">
               <div className="col-lg-4 col-md-6">
                 <div className="footer-brand mb-4">
-                  <h4 className="fw-bold text-white mb-3">
-                    <i className="fas fa-building me-2" style={{color: '#ff6b35'}}></i>
-                    ZENStay
+                  <h4 className="fw-bold text-white mb-3 d-flex align-items-center">
+                    <span className="me-3" style={{
+                      position: 'relative',
+                      display: 'inline-block',
+                      animation: 'logoFloat 3s ease-in-out infinite'
+                    }}>
+                      <i className="fas fa-hotel" style={{
+                        color: '#ff6b35',
+                        fontSize: '1.5rem',
+                        filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))'
+                      }}></i>
+                      <i className="fas fa-star" style={{
+                        position: 'absolute',
+                        top: '-3px',
+                        right: '-3px',
+                        color: '#ffd700',
+                        fontSize: '0.6rem',
+                        animation: 'starTwinkle 2s ease-in-out infinite'
+                      }}></i>
+                    </span>
+                    <span style={{
+                      fontFamily: 'serif',
+                      textShadow: '1px 1px 3px rgba(0,0,0,0.3)'
+                    }}>
+                      <span style={{color: '#ffffff'}}>ZEN</span>
+                      <span style={{color: '#ff6b35'}}>Stay</span>
+                    </span>
                   </h4>
                   <p className="footer-description mb-4">
                     Experience luxury and comfort with our premium hotel booking service. 

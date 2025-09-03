@@ -347,8 +347,20 @@ function RoomListing() {
                         <small>Breakfast</small>
                       </div>
                       <div className="col-6">
-                        <i className="fas fa-swimming-pool text-success me-1"></i>
-                        <small>Pool Access</small>
+                        {(() => {
+                          const roomType = room.roomType || '';
+                          if (roomType.includes('Deluxe')) {
+                            return <><i className="fas fa-concierge-bell text-success me-1"></i><small>Room Service</small></>;
+                          } else if (roomType.includes('Premium') || roomType.includes('Royal')) {
+                            return <><i className="fas fa-hot-tub text-success me-1"></i><small>Spa Access</small></>;
+                          } else if (roomType.includes('Executive')) {
+                            return <><i className="fas fa-briefcase text-success me-1"></i><small>Business Center</small></>;
+                          } else if (roomType.includes('Business')) {
+                            return <><i className="fas fa-laptop text-success me-1"></i><small>Work Desk</small></>;
+                          } else {
+                            return <><i className="fas fa-tv text-success me-1"></i><small>Smart TV</small></>;
+                          }
+                        })()} 
                       </div>
                     </div>
                   </div>

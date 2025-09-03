@@ -14,6 +14,10 @@ function BookingList() {
       const res = await getBookings();
       const apiBookings = res.data || [];
       
+      // Get current user data
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const currentUserId = userData.userId || userData.email;
+      
       // Merge with localStorage bookings to ensure all bookings are shown
       const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
       const mergedBookings = [...apiBookings];
@@ -28,7 +32,14 @@ function BookingList() {
         }
       });
       
-      setBookings(mergedBookings);
+      // Filter bookings for current user only
+      const userBookings = mergedBookings.filter(booking => 
+        booking.userId === currentUserId || 
+        booking.guestEmail === currentUserId ||
+        (!booking.userId && booking.guestEmail === userData.email)
+      );
+      
+      setBookings(userBookings);
       setError('');
     } catch (err) {
       if (process.env.NODE_ENV === 'test') {
@@ -36,8 +47,20 @@ function BookingList() {
       } else {
         // Fallback: Load from localStorage
         const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-        setBookings(localBookings);
-        if (localBookings.length === 0) {
+        
+        // Get current user data for filtering
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const currentUserId = userData.userId || userData.email;
+        
+        // Filter bookings for current user only
+        const userBookings = localBookings.filter(booking => 
+          booking.userId === currentUserId || 
+          booking.guestEmail === currentUserId ||
+          (!booking.userId && booking.guestEmail === userData.email)
+        );
+        
+        setBookings(userBookings);
+        if (userBookings.length === 0) {
           setError('No bookings found');
         } else {
           setError('');
@@ -53,11 +76,16 @@ function BookingList() {
     
     // Listen for real-time updates
     const handleBookingUpdate = (data) => {
-      setBookings(prev => prev.map(booking => 
-        booking.bookingId === data.bookingId 
-          ? { ...booking, status: data.status }
-          : booking
-      ));
+      if (data.action === 'free_all_rooms') {
+        // Remove all approved bookings when admin frees all rooms
+        setBookings(prev => prev.filter(booking => booking.status !== 'APPROVED'));
+      } else if (data.bookingId) {
+        setBookings(prev => prev.map(booking => 
+          booking.bookingId === data.bookingId 
+            ? { ...booking, status: data.status }
+            : booking
+        ));
+      }
     };
     
     const handleDataRefresh = () => {
@@ -92,6 +120,10 @@ function BookingList() {
             const res = await getBookings();
             const apiBookings = res.data || [];
             
+            // Get current user data
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const currentUserId = userData.userId || userData.email;
+            
             // Merge with localStorage bookings
             const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
             const mergedBookings = [...apiBookings];
@@ -106,12 +138,31 @@ function BookingList() {
               }
             });
             
-            setBookings(mergedBookings);
+            // Filter bookings for current user only
+            const userBookings = mergedBookings.filter(booking => 
+              booking.userId === currentUserId || 
+              booking.guestEmail === currentUserId ||
+              (!booking.userId && booking.guestEmail === userData.email)
+            );
+            
+            setBookings(userBookings);
             setError('');
           } catch {
             // Fallback: Load from localStorage
             const localBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-            setBookings(localBookings);
+            
+            // Get current user data for filtering
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const currentUserId = userData.userId || userData.email;
+            
+            // Filter bookings for current user only
+            const userBookings = localBookings.filter(booking => 
+              booking.userId === currentUserId || 
+              booking.guestEmail === currentUserId ||
+              (!booking.userId && booking.guestEmail === userData.email)
+            );
+            
+            setBookings(userBookings);
             setError('');
           } finally {
             setLoading(false);

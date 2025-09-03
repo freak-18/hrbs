@@ -811,3 +811,67 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* --- Animated Logo Styles --- */
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    opacity: 0.7;
+    transform: scale(1.2) rotate(90deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.8) rotate(180deg);
+  }
+  75% {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(270deg);
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+  50% {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255, 107, 53, 0.5);
+  }
+}
+
+.logo-icon-animated:hover {
+  animation-duration: 1s;
+}
+
+.logo-icon-animated:hover .fas.fa-hotel {
+  color: #ff8c42 !important;
+  transform: scale(1.1);
+}
+
+.logo-text-animated:hover span {
+  animation-duration: 1s;
+}
+
+/* --- Logo Hover Effects --- */
+.navbar-brand:hover .logo-icon-animated {
+  animation-duration: 1s;
+}
+
+.navbar-brand:hover .logo-text-animated span:first-child {
+  color: #f0f0f0 !important;
+}
+
+.navbar-brand:hover .logo-text-animated span:last-child {
+  color: #ff8c42 !important;
+}
