@@ -87,8 +87,8 @@ const HomePage = () => {
                     </h5>
                   </div>
                   <form onSubmit={handleSearch}>
-                    <div className="row g-4">
-                      <div className="col-lg-3 col-md-6">
+                    <div className="row g-3">
+                      <div className="col-lg-3 col-md-6 col-12">
                         <label className="form-label fw-semibold">
                           <i className="fas fa-map-marker-alt me-2 text-primary"></i>
                           Destination
@@ -104,7 +104,7 @@ const HomePage = () => {
                           <i className="fas fa-search position-absolute" style={{right: '15px', top: '50%', transform: 'translateY(-50%)', color: '#999'}}></i>
                         </div>
                       </div>
-                      <div className="col-lg-2 col-md-6">
+                      <div className="col-lg-2 col-md-6 col-sm-6 col-12">
                         <label className="form-label fw-semibold">
                           <i className="fas fa-calendar-plus me-2 text-success"></i>
                           Check-in
@@ -117,7 +117,7 @@ const HomePage = () => {
                           onChange={(e) => setSearchData({...searchData, checkIn: e.target.value})}
                         />
                       </div>
-                      <div className="col-lg-2 col-md-6">
+                      <div className="col-lg-2 col-md-6 col-sm-6 col-12">
                         <label className="form-label fw-semibold">
                           <i className="fas fa-calendar-minus me-2 text-danger"></i>
                           Check-out
@@ -130,7 +130,7 @@ const HomePage = () => {
                           onChange={(e) => setSearchData({...searchData, checkOut: e.target.value})}
                         />
                       </div>
-                      <div className="col-lg-2 col-md-6">
+                      <div className="col-lg-2 col-md-6 col-12">
                         <label className="form-label fw-semibold">
                           <i className="fas fa-users me-2 text-info"></i>
                           Guests & Rooms
@@ -156,11 +156,12 @@ const HomePage = () => {
                           </select>
                         </div>
                       </div>
-                      <div className="col-lg-3 col-md-12">
-                        <label className="form-label fw-semibold text-white">.</label>
-                        <button type="submit" className="btn btn-primary btn-lg w-100 fw-semibold">
+                      <div className="col-lg-3 col-md-6 col-12">
+                        <label className="form-label fw-semibold d-none d-lg-block text-white">.</label>
+                        <button type="submit" className="btn btn-primary btn-lg w-100 fw-semibold mt-lg-0 mt-2">
                           <i className="fas fa-search me-2"></i>
-                          Search Hotels
+                          <span className="d-none d-sm-inline">Search Hotels</span>
+                          <span className="d-sm-none">Search</span>
                         </button>
                       </div>
                     </div>

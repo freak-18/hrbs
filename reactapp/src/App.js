@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useLocation } from "react-router-dom";
 import HomePage from "./components/HomePage";
 import AdminDashboard from "./components/AdminDashboard";
-import AdminPanel from "./components/AdminPanel";
 import BookingForm from "./components/BookingForm";
 import BookingList from "./components/BookingList";
 import RoomListing from "./components/RoomListing";
@@ -100,7 +99,7 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
   return (
     <>
       {!isAdminRoute && !isLoginPage && (
-        <nav className="navbar navbar-expand-lg" style={{backgroundColor: '#051423', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
+        <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: '#051423', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
           <div className="container">
             <Link className="navbar-brand text-white fw-bold fs-3" to="/" style={{textDecoration: 'none'}}>
               <span className="d-flex align-items-center">
@@ -144,50 +143,58 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
               </span>
             </Link>
             
-            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button 
+              className="navbar-toggler" 
+              type="button" 
+              data-bs-toggle="collapse" 
+              data-bs-target="#navbarNav"
+              aria-controls="navbarNav"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
               <span className="navbar-toggler-icon"></span>
             </button>
             
             <div className="collapse navbar-collapse" id="navbarNav">
-              <ul className="navbar-nav ms-auto">
+              <ul className="navbar-nav ms-auto align-items-lg-center">
                 <li className="nav-item">
-                  <Link className="nav-link text-white px-3 py-2 rounded" to="/">
-                    <i className="fas fa-home me-1"></i> Home
+                  <Link className="nav-link text-white px-3 py-2 rounded d-flex align-items-center" to="/">
+                    <i className="fas fa-home me-2"></i> Home
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link text-white px-3 py-2 rounded" to="/rooms">
-                    <i className="fas fa-bed me-1"></i> Rooms
+                  <Link className="nav-link text-white px-3 py-2 rounded d-flex align-items-center" to="/rooms">
+                    <i className="fas fa-bed me-2"></i> Rooms
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link text-white px-3 py-2 rounded" to="/bookings">
-                    <i className="fas fa-calendar-check me-1"></i> My Bookings
+                  <Link className="nav-link text-white px-3 py-2 rounded d-flex align-items-center" to="/bookings">
+                    <i className="fas fa-calendar-check me-2"></i> My Bookings
                   </Link>
                 </li>
                 {isUserLoggedIn && (
-                  <li className="nav-item">
-                    <span className="nav-link text-white px-3 py-2">
-                      <i className="fas fa-user me-1"></i>
-                      Welcome, {JSON.parse(localStorage.getItem('userData') || '{}').name || 'User'}
+                  <li className="nav-item d-none d-lg-block">
+                    <span className="nav-link text-white px-3 py-2 d-flex align-items-center">
+                      <i className="fas fa-user me-2"></i>
+                      <span className="d-none d-xl-inline">Welcome, </span>{JSON.parse(localStorage.getItem('userData') || '{}').name || 'User'}
                     </span>
                   </li>
                 )}
                 <li className="nav-item">
                   {isUserLoggedIn ? (
                     <button 
-                      className="nav-link text-white px-3 py-2 rounded btn btn-link border-0"
+                      className="nav-link text-white px-3 py-2 rounded btn btn-link border-0 d-flex align-items-center w-100 text-start"
                       onClick={() => {
                         localStorage.removeItem('userLoggedIn');
                         localStorage.removeItem('userData');
                         setIsUserLoggedIn(false);
                       }}
                     >
-                      <i className="fas fa-sign-out-alt me-1"></i> Logout
+                      <i className="fas fa-sign-out-alt me-2"></i> Logout
                     </button>
                   ) : (
-                    <Link className="nav-link text-white px-3 py-2 rounded" to="/login">
-                      <i className="fas fa-sign-in-alt me-1"></i> Login
+                    <Link className="nav-link text-white px-3 py-2 rounded d-flex align-items-center" to="/login">
+                      <i className="fas fa-sign-in-alt me-2"></i> Login
                     </Link>
                   )}
                 </li>
@@ -280,16 +287,16 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
                     Your perfect stay is just a click away.
                   </p>
                   <div className="social-links">
-                    <a href="#" className="social-link me-3">
+                    <a href="https://facebook.com" className="social-link me-3" target="_blank" rel="noopener noreferrer">
                       <i className="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" className="social-link me-3">
+                    <a href="https://twitter.com" className="social-link me-3" target="_blank" rel="noopener noreferrer">
                       <i className="fab fa-twitter"></i>
                     </a>
-                    <a href="#" className="social-link me-3">
+                    <a href="https://instagram.com" className="social-link me-3" target="_blank" rel="noopener noreferrer">
                       <i className="fab fa-instagram"></i>
                     </a>
-                    <a href="#" className="social-link">
+                    <a href="https://linkedin.com" className="social-link" target="_blank" rel="noopener noreferrer">
                       <i className="fab fa-linkedin-in"></i>
                     </a>
                   </div>
@@ -353,8 +360,8 @@ function AppContent({ isAdminLoggedIn, setIsAdminLoggedIn, isUserLoggedIn, setIs
               </div>
               <div className="col-md-6 text-md-end">
                 <div className="footer-legal">
-                  <a href="#" className="footer-legal-link me-3">Privacy Policy</a>
-                  <a href="#" className="footer-legal-link">Terms of Service</a>
+                  <button className="footer-legal-link me-3 btn btn-link p-0 border-0">Privacy Policy</button>
+                  <button className="footer-legal-link btn btn-link p-0 border-0">Terms of Service</button>
                 </div>
               </div>
             </div>

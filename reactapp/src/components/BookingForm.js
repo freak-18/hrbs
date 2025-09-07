@@ -179,14 +179,15 @@ const BookingForm = ({ room = {} }) => {
         </div>
       </div>
 
-      <div className="row">
+      <div className="row g-4">
         {/* Booking Form */}
-        <div className="col-lg-8">
+        <div className="col-lg-8 col-12">
           <div className="card shadow-sm border-0">
             <div className="card-header bg-primary text-white">
-              <h4 className="mb-0">
+              <h4 className="mb-0 h5">
                 <i className="fas fa-calendar-check me-2"></i>
-                Complete Your Booking
+                <span className="d-none d-sm-inline">Complete Your Booking</span>
+                <span className="d-sm-none">Book Room</span>
               </h4>
             </div>
             <div className="card-body p-4">
@@ -229,7 +230,7 @@ const BookingForm = ({ room = {} }) => {
                     </h5>
                   </div>
 
-                  <div className="col-md-6 mb-3">
+                  <div className="col-md-6 col-12 mb-3">
                     <label htmlFor="guestName" className="form-label fw-semibold">
                       <i className="fas fa-user me-1"></i> Full Name *
                     </label>
@@ -244,7 +245,7 @@ const BookingForm = ({ room = {} }) => {
                     />
                   </div>
 
-                  <div className="col-md-6 mb-3">
+                  <div className="col-md-6 col-12 mb-3">
                     <label htmlFor="guestEmail" className="form-label fw-semibold">
                       <i className="fas fa-envelope me-1"></i> Email Address *
                     </label>
@@ -267,7 +268,7 @@ const BookingForm = ({ room = {} }) => {
                     </h5>
                   </div>
 
-                  <div className="col-md-6 mb-3">
+                  <div className="col-md-6 col-12 mb-3">
                     <label htmlFor="checkInDate" className="form-label fw-semibold">
                       <i className="fas fa-calendar-plus me-1"></i> Check-in Date *
                     </label>
@@ -282,7 +283,7 @@ const BookingForm = ({ room = {} }) => {
                     />
                   </div>
 
-                  <div className="col-md-6 mb-3">
+                  <div className="col-md-6 col-12 mb-3">
                     <label htmlFor="checkOutDate" className="form-label fw-semibold">
                       <i className="fas fa-calendar-minus me-1"></i> Check-out Date *
                     </label>
@@ -324,8 +325,8 @@ const BookingForm = ({ room = {} }) => {
         </div>
 
         {/* Booking Summary */}
-        <div className="col-lg-4">
-          <div className="card shadow-sm border-0 sticky-top" style={{top: '20px'}}>
+        <div className="col-lg-4 col-12">
+          <div className="card shadow-sm border-0 position-lg-sticky" style={{top: '20px'}}>
             <div className="card-header bg-light">
               <h5 className="mb-0">
                 <i className="fas fa-receipt me-2"></i>

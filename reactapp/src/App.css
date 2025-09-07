@@ -418,7 +418,157 @@ body {
 }
 
 /* --- Responsive Design --- */
-@media (max-width: 768px) {
+
+/* Mobile First Approach - Base styles for mobile */
+@media (max-width: 575.98px) {
+  /* Typography */
+  .display-3 {
+    font-size: 2rem !important;
+  }
+  
+  .display-4 {
+    font-size: 1.8rem !important;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Hero Section */
+  .hero-section {
+    min-height: 50vh !important;
+    padding: 2rem 0 !important;
+  }
+  
+  /* Navigation */
+  .navbar-brand {
+    font-size: 1.4rem !important;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.75rem 1rem !important;
+    text-align: center;
+  }
+  
+  /* Search Form */
+  .search-form {
+    padding: 1.5rem !important;
+    margin: 0 1rem;
+  }
+  
+  .search-form .row {
+    gap: 0.5rem;
+  }
+  
+  .search-form .col-lg-3,
+  .search-form .col-lg-2,
+  .search-form .col-md-6 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .search-form .d-flex {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Cards */
+  .card-body {
+    padding: 1rem !important;
+  }
+  
+  .room-card .card-img-top {
+    height: 200px !important;
+  }
+  
+  .room-card:hover {
+    transform: translateY(-2px) !important;
+  }
+  
+  /* Buttons */
+  .btn-group {
+    flex-direction: column !important;
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    border-radius: var(--border-radius) !important;
+    margin-bottom: 0.25rem;
+    width: 100%;
+  }
+  
+  /* Tables */
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem !important;
+  }
+  
+  /* Admin Panel */
+  .admin-sidebar {
+    position: static !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  
+  /* Booking Form */
+  .booking-summary {
+    position: static !important;
+    margin-top: 2rem;
+  }
+  
+  /* Footer */
+  .footer-modern .row {
+    text-align: center !important;
+  }
+  
+  .footer-legal {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Utility */
+  .d-flex.gap-4 {
+    gap: 1rem !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .hero-section {
+    min-height: 55vh;
+  }
+  
+  .display-3 {
+    font-size: 2.2rem;
+  }
+  
+  .search-form {
+    padding: 1.75rem;
+  }
+  
+  .room-card .card-img-top {
+    height: 220px;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
   .hero-section {
     min-height: 60vh;
   }
@@ -427,26 +577,84 @@ body {
     font-size: 2.5rem;
   }
   
-  .card-body {
-    padding: 1.5rem;
+  .search-form .col-lg-3 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  
+  .search-form .col-lg-2 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  
+  .room-card .card-img-top {
+    height: 240px;
+  }
+  
+  .admin-sidebar {
+    min-height: 100vh;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .hero-section {
+    min-height: 70vh;
   }
   
   .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    max-width: 960px;
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .hero-section {
+    min-height: 75vh;
   }
   
-  .btn-group {
-    flex-direction: column;
+  .container {
+    max-width: 1140px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero-section {
+    min-height: 100vh !important;
+    padding: 1rem 0;
   }
   
-  .btn-group .btn {
-    border-radius: var(--border-radius) !important;
-    margin-bottom: 0.25rem;
+  .navbar {
+    padding: 0.25rem 0;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .card-img-top,
+  .destination-card img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar,
+  .footer-modern,
+  .btn,
+  .alert {
+    display: none !important;
   }
   
-  .room-card:hover {
-    transform: translateY(-4px);
+  .container {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  .card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
   }
 }
 
@@ -465,6 +673,86 @@ body {
 
 .border-radius-custom {
   border-radius: var(--border-radius-lg);
+}
+
+/* --- Responsive Utility Classes --- */
+.mobile-hidden {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .mobile-center {
+    text-align: center !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-no-padding {
+    padding: 0 !important;
+  }
+  
+  .mobile-small-padding {
+    padding: 0.5rem !important;
+  }
+  
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-text-sm {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .form-control {
+    min-height: 44px;
+  }
+  
+  .card:hover {
+    transform: none;
+  }
+  
+  .room-card:hover {
+    transform: none;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* --- Modern Footer --- */

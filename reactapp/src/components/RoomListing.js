@@ -188,17 +188,21 @@ function RoomListing() {
           <div className="col-12">
             <div className="card shadow-sm border-0 mb-4">
               <div className="card-body">
-                <div className="row g-3 align-items-center">
-                  <div className="col-md-3">
-                    <h6 className="mb-2 fw-bold">
+                <div className="row g-3 align-items-end">
+                  <div className="col-12 col-md-3">
+                    <h6 className="mb-2 fw-bold d-none d-md-block">
                       <i className="fas fa-filter me-2 text-primary"></i>
                       Filters
                     </h6>
+                    <h6 className="mb-2 fw-bold d-md-none text-center">
+                      <i className="fas fa-filter me-2 text-primary"></i>
+                      Filter & Sort
+                    </h6>
                   </div>
-                  <div className="col-md-3">
+                  <div className="col-6 col-md-3">
                     <label className="form-label small fw-semibold">Sort By</label>
                     <select 
-                      className="form-select"
+                      className="form-select form-select-sm"
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                     >
@@ -207,10 +211,10 @@ function RoomListing() {
                       <option value="name">Name (A to Z)</option>
                     </select>
                   </div>
-                  <div className="col-md-3">
+                  <div className="col-6 col-md-3">
                     <label className="form-label small fw-semibold">Price Range</label>
                     <select 
-                      className="form-select"
+                      className="form-select form-select-sm"
                       onChange={(e) => {
                         const [min, max] = e.target.value.split('-').map(Number);
                         setPriceRange([min, max]);
@@ -223,17 +227,17 @@ function RoomListing() {
                       <option value="8000-10000">Above ₹8,000</option>
                     </select>
                   </div>
-                  <div className="col-md-3">
-                    <div className="form-check form-switch mt-4">
+                  <div className="col-12 col-md-3">
+                    <div className="form-check form-switch d-flex justify-content-center justify-content-md-start">
                       <input
-                        className="form-check-input"
+                        className="form-check-input me-2"
                         type="checkbox"
                         id="availableOnly"
                         checked={showAvailableOnly}
                         onChange={() => setShowAvailableOnly(!showAvailableOnly)}
                       />
-                      <label className="form-check-label fw-semibold" htmlFor="availableOnly">
-                        Show Available Only
+                      <label className="form-check-label fw-semibold small" htmlFor="availableOnly">
+                        Available Only
                       </label>
                     </div>
                   </div>
@@ -274,9 +278,9 @@ function RoomListing() {
         </div>
 
         {/* Room Cards */}
-        <div className="row">
+        <div className="row g-4">
           {Array.isArray(filteredAndSortedRooms) && filteredAndSortedRooms.map(room => (
-            <div key={room.roomId} className="col-lg-4 col-md-6 mb-4">
+            <div key={room.roomId} className="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
               <div className="card h-100 shadow-sm border-0 room-card">
                 {/* Room Image */}
                 <div className="position-relative overflow-hidden">

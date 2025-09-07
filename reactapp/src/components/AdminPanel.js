@@ -209,19 +209,29 @@ function AdminPanel() {
                     <thead className="table-light">
                       <tr>
                         <th className="border-0 fw-semibold">
-                          <i className="fas fa-user me-1"></i> Guest Details
+                          <i className="fas fa-user me-1 d-none d-sm-inline"></i> 
+                          <span className="d-none d-md-inline">Guest Details</span>
+                          <span className="d-md-none">Guest</span>
+                        </th>
+                        <th className="border-0 fw-semibold d-none d-sm-table-cell">
+                          <i className="fas fa-door-open me-1"></i> 
+                          <span className="d-none d-lg-inline">Room Info</span>
+                          <span className="d-lg-none">Room</span>
+                        </th>
+                        <th className="border-0 fw-semibold d-none d-md-table-cell">
+                          <i className="fas fa-calendar me-1"></i> 
+                          <span className="d-none d-lg-inline">Stay Dates</span>
+                          <span className="d-lg-none">Dates</span>
                         </th>
                         <th className="border-0 fw-semibold">
-                          <i className="fas fa-door-open me-1"></i> Room Info
-                        </th>
-                        <th className="border-0 fw-semibold">
-                          <i className="fas fa-calendar me-1"></i> Stay Dates
-                        </th>
-                        <th className="border-0 fw-semibold">
-                          <i className="fas fa-rupee-sign me-1"></i> Amount
+                          <i className="fas fa-rupee-sign me-1 d-none d-sm-inline"></i> 
+                          <span className="d-none d-sm-inline">Amount</span>
+                          <span className="d-sm-none">₹</span>
                         </th>
                         <th className="border-0 fw-semibold text-center">
-                          <i className="fas fa-cogs me-1"></i> Actions
+                          <i className="fas fa-cogs me-1 d-none d-sm-inline"></i> 
+                          <span className="d-none d-sm-inline">Actions</span>
+                          <span className="d-sm-none">Act</span>
                         </th>
                       </tr>
                     </thead>
@@ -231,27 +241,34 @@ function AdminPanel() {
                           <td className="py-3">
                             <div>
                               <div className="fw-semibold">{booking.guestName}</div>
-                              <small className="text-muted">
-                                <i className="fas fa-envelope me-1"></i>
-                                {booking.guestEmail || 'guest@example.com'}
+                              <small className="text-muted d-block">
+                                <i className="fas fa-envelope me-1 d-none d-sm-inline"></i>
+                                <span className="d-none d-sm-inline">{booking.guestEmail || 'guest@example.com'}</span>
                               </small>
-                              <br />
-                              <small className="text-muted">
+                              <small className="text-muted d-block">
                                 ID: #{booking.bookingId}
                               </small>
-                              <br />
+                              <div className="d-sm-none mt-1">
+                                <small className="text-muted d-block">
+                                  Room {booking.room?.roomNumber || booking.roomNumber || 'N/A'}
+                                </small>
+                                <small className="text-muted d-block">
+                                  {booking.checkInDate ? new Date(booking.checkInDate).toLocaleDateString() : 'TBD'} - 
+                                  {booking.checkOutDate ? new Date(booking.checkOutDate).toLocaleDateString() : 'TBD'}
+                                </small>
+                              </div>
                               <span className={`badge ${booking.status === 'PENDING' ? 'bg-warning' : 'bg-success'} mt-1`}>
                                 {booking.status}
                               </span>
                             </div>
                           </td>
-                          <td className="py-3">
+                          <td className="py-3 d-none d-sm-table-cell">
                             <div>
                               <div className="fw-semibold">Room <span>{booking.room?.roomNumber || booking.roomNumber || 'N/A'}</span></div>
                               <small className="text-muted">{booking.room?.roomType || 'Deluxe Room'}</small>
                             </div>
                           </td>
-                          <td className="py-3">
+                          <td className="py-3 d-none d-md-table-cell">
                             <div>
                               <div className="small">
                                 <i className="fas fa-calendar-plus text-success me-1"></i>
@@ -265,7 +282,7 @@ function AdminPanel() {
                           </td>
                           <td className="py-3">
                             <div className="fw-bold text-primary">
-                              ₹{booking.totalPrice?.toLocaleString() || '0'}
+                              <span className="d-none d-sm-inline">₹</span>{booking.totalPrice?.toLocaleString() || '0'}
                             </div>
                           </td>
                           <td className="py-3 text-center">
