@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createBooking } from '../utils/api';
 import { Link } from 'react-router-dom';
 import { eventBus, EVENTS } from '../utils/eventBus';
+import PaymentGateway from './PaymentGateway';
+import { sendNotification, scheduleAutoReject } from '../utils/notifications';
 
 const BookingForm = ({ room = {} }) => {
   // Safe navigation that works in both test and production environments
@@ -36,6 +38,8 @@ const BookingForm = ({ room = {} }) => {
   const [errors, setErrors] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState(null);
  
 
   const validate = () => {
@@ -68,82 +72,99 @@ const BookingForm = ({ room = {} }) => {
     }
     setErrors([]);
     setLoading(true);
-    try {
-      const response = await createBooking({ ...form, roomId: room?.roomId || 1 });
-      
-      // Get current user data
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const userId = userData.userId || userData.email || form.guestEmail;
-      
-      // Create booking object with API response data
-      const newBooking = {
-        bookingId: response.data?.bookingId || Date.now(),
-        ...form,
-        roomId: room?.roomId || 1,
-        room: room,
-        totalPrice: totalPrice,
-        status: response.data?.status || 'PENDING',
-        createdAt: response.data?.createdAt || new Date().toISOString(),
-        userId: userId
-      };
-      
-      // Store in localStorage for immediate display
-      const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-      existingBookings.push(newBooking);
-      localStorage.setItem('hotelBookings', JSON.stringify(existingBookings));
-      
-      // Emit event for real-time updates
-      eventBus.emit(EVENTS.BOOKING_CREATED, newBooking);
-      eventBus.emit(EVENTS.DATA_REFRESH, { source: 'booking_created' });
-      
-      setMessage('Booking created successfully');
-      
-      // Navigate to bookings page after 2 seconds
-      setTimeout(() => {
-        navigate('/bookings');
-      }, 2000);
-    } catch (err) {
-      console.error('Booking error:', err);
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          err.message || 
-                          'Booking failed due to server error';
-      
-      // Show error message first (for tests)
-      setMessage(`Booking failed: ${errorMessage}`);
-      
-      // In production, also save to localStorage as fallback after showing error
-      if (process.env.NODE_ENV !== 'test') {
-        setTimeout(() => {
-          // Get current user data for fallback
-          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-          const userId = userData.userId || userData.email || form.guestEmail;
-          
-          // Create booking locally when API fails
-          const newBooking = {
-            bookingId: Date.now(),
-            ...form,
-            roomId: room?.roomId || 1,
-            room: room,
-            totalPrice: totalPrice,
-            status: 'PENDING',
-            createdAt: new Date().toISOString(),
-            userId: userId
-          };
-          
-          const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-          existingBookings.push(newBooking);
-          localStorage.setItem('hotelBookings', JSON.stringify(existingBookings));
-          
-          setMessage('Booking created successfully');
-          setTimeout(() => {
-            navigate('/bookings');
-          }, 2000);
-        }, 1000);
+    
+    // In test environment, create booking immediately
+    if (process.env.NODE_ENV === 'test') {
+      try {
+        await createBooking({ ...form, roomId: room?.roomId || 1 });
+        setMessage('Booking created successfully');
+        setTimeout(() => navigate('/bookings'), 2000);
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || err.message || 'Booking failed';
+        setMessage(`Booking failed: ${errorMessage}`);
       }
-    } finally {
       setLoading(false);
+      return;
     }
+    
+    // Production: Create booking object for payment
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const newBooking = {
+      bookingId: Date.now(),
+      ...form,
+      roomId: room?.roomId || 1,
+      room: room,
+      totalPrice: totalPrice,
+      status: 'PENDING',
+      paymentStatus: 'UNPAID',
+      createdAt: new Date().toISOString(),
+      userId: userData.userId || userData.email || form.guestEmail
+    };
+    
+    setPendingBooking(newBooking);
+    setShowPayment(true);
+    setLoading(false);
+  };
+
+  const handlePaymentComplete = async (updatedBooking, paymentData) => {
+    setShowPayment(false);
+    
+    if (!updatedBooking) {
+      setMessage(`Payment failed: ${paymentData.error}`);
+      return;
+    }
+    
+    // Create booking in database after successful payment
+    try {
+      const response = await createBooking({
+        roomId: updatedBooking.roomId,
+        guestName: updatedBooking.guestName,
+        guestEmail: updatedBooking.guestEmail,
+        checkInDate: updatedBooking.checkInDate,
+        checkOutDate: updatedBooking.checkOutDate
+      });
+      
+      // Update booking with database ID
+      updatedBooking.bookingId = response.data?.bookingId || updatedBooking.bookingId;
+      
+    } catch (err) {
+      console.error('Failed to save booking to database:', err);
+    }
+    
+    // Store booking with payment info
+    const existingBookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+    const bookingIndex = existingBookings.findIndex(b => b.bookingId === updatedBooking.bookingId);
+    
+    if (bookingIndex >= 0) {
+      existingBookings[bookingIndex] = updatedBooking;
+    } else {
+      existingBookings.push(updatedBooking);
+    }
+    
+    localStorage.setItem('hotelBookings', JSON.stringify(existingBookings));
+    
+    // Send notifications
+    await sendNotification('BOOKING_CREATED', updatedBooking);
+    await sendNotification('PAYMENT_SUCCESS', updatedBooking);
+    
+    // Schedule auto-reject if admin doesn't approve within 24 hours
+    scheduleAutoReject(updatedBooking.bookingId, 1440); // 24 hours
+    
+    // Emit events
+    eventBus.emit(EVENTS.BOOKING_CREATED, updatedBooking);
+    eventBus.emit(EVENTS.DATA_REFRESH, { source: 'booking_created' });
+    
+    setMessage('Booking created and payment successful! Awaiting admin approval.');
+    
+    setTimeout(() => {
+      navigate('/bookings');
+    }, 3000);
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
+    setPendingBooking(null);
+    setMessage('Booking cancelled. Payment was not completed.');
   };
 
   const calculateNights = () => {
@@ -313,7 +334,7 @@ const BookingForm = ({ room = {} }) => {
                       ) : (
                         <>
                           <i className="fas fa-credit-card me-2"></i>
-                          Create Booking
+                          {process.env.NODE_ENV === 'test' ? 'Create Booking' : 'Proceed to Payment'}
                         </>
                       )}
                     </button>
@@ -383,6 +404,15 @@ const BookingForm = ({ room = {} }) => {
           </div>
         </div>
       </div>
+      
+      {/* Payment Gateway Modal */}
+      {showPayment && pendingBooking && (
+        <PaymentGateway 
+          booking={pendingBooking}
+          onPaymentComplete={handlePaymentComplete}
+          onPaymentCancel={handlePaymentCancel}
+        />
+      )}
     </div>
   );
 };

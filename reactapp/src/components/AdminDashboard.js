@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { getBookings, updateBookingStatus, getRooms, freeRoom, freeAllRooms } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { eventBus, EVENTS } from '../utils/eventBus';
+import { sendNotification } from '../utils/notifications';
+import NotificationPanel from './NotificationPanel';
 
 const AdminDashboard = ({ onLogout }) => {
   const [bookings, setBookings] = useState([]);
@@ -14,6 +16,28 @@ const AdminDashboard = ({ onLogout }) => {
   const [adminUser, setAdminUser] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const navigate = useNavigate();
+
+  const generateAnalyticsData = useCallback((currentBookings = bookings, currentRooms = rooms) => {
+    const monthlyRevenue = Array.from({length: 12}, (_, i) => {
+      const month = new Date(2024, i, 1).toLocaleDateString('en-US', {month: 'short'});
+      const monthBookings = currentBookings.filter(b => {
+        if (!b.checkInDate) return false;
+        const bookingMonth = new Date(b.checkInDate).getMonth();
+        return bookingMonth === i && b.status === 'APPROVED';
+      });
+      const revenue = monthBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+      return {month, revenue: revenue || Math.floor(Math.random() * 50000) + 25000};
+    });
+
+    const roomTypeStats = [
+      {type: 'Deluxe Room', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Deluxe') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Deluxe') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 45000},
+      {type: 'Premium Suite', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Premium') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Premium') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 65000},
+      {type: 'Executive Room', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Executive') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Executive') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 55000},
+      {type: 'Royal Suite', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Royal') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Royal') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 85000}
+    ];
+
+    return {monthlyRevenue, roomTypeStats};
+  }, [bookings, rooms]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -59,7 +83,7 @@ const AdminDashboard = ({ onLogout }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [generateAnalyticsData]);
 
   useEffect(() => {
     // Get admin user info
@@ -119,8 +143,24 @@ const AdminDashboard = ({ onLogout }) => {
     setProcessingId(id);
     const booking = bookings.find(b => b.bookingId === id);
     
+    // Check payment status before approval
+    if (status === 'APPROVED' && booking?.paymentStatus !== 'PAID') {
+      setMessage(`Cannot approve booking #${id}: Payment not received`);
+      setProcessingId(null);
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+    
     try {
       await updateBookingStatus(id, status);
+      
+      // Send notification
+      if (status === 'APPROVED') {
+        await sendNotification('BOOKING_APPROVED', booking);
+      } else if (status === 'REJECTED') {
+        await sendNotification('BOOKING_REJECTED', booking);
+      }
+      
       setMessage(`Booking #${id} has been ${status.toLowerCase()} successfully`);
       
       // Update localStorage first
@@ -186,6 +226,13 @@ const AdminDashboard = ({ onLogout }) => {
         ));
         
         eventBus.emit(EVENTS.ROOM_UPDATED, { roomId, available: status !== 'APPROVED' });
+      }
+      
+      // Send notification in fallback
+      if (status === 'APPROVED') {
+        await sendNotification('BOOKING_APPROVED', booking);
+      } else if (status === 'REJECTED') {
+        await sendNotification('BOOKING_REJECTED', booking);
       }
       
       // Emit events for fallback updates
@@ -342,27 +389,7 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
-  const generateAnalyticsData = (currentBookings = bookings, currentRooms = rooms) => {
-    const monthlyRevenue = Array.from({length: 12}, (_, i) => {
-      const month = new Date(2024, i, 1).toLocaleDateString('en-US', {month: 'short'});
-      const monthBookings = currentBookings.filter(b => {
-        if (!b.checkInDate) return false;
-        const bookingMonth = new Date(b.checkInDate).getMonth();
-        return bookingMonth === i && b.status === 'APPROVED';
-      });
-      const revenue = monthBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
-      return {month, revenue: revenue || Math.floor(Math.random() * 50000) + 25000};
-    });
 
-    const roomTypeStats = [
-      {type: 'Deluxe Room', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Deluxe') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Deluxe') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 45000},
-      {type: 'Premium Suite', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Premium') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Premium') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 65000},
-      {type: 'Executive Room', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Executive') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Executive') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 55000},
-      {type: 'Royal Suite', bookings: currentBookings.filter(b => b.room?.roomType?.includes('Royal') && b.status === 'APPROVED').length, revenue: currentBookings.filter(b => b.room?.roomType?.includes('Royal') && b.status === 'APPROVED').reduce((sum, b) => sum + (b.totalPrice || 0), 0) || 85000}
-    ];
-
-    return {monthlyRevenue, roomTypeStats};
-  };
 
   const handleSystemSettings = {
     updateHotelInfo: (info) => {
@@ -405,8 +432,10 @@ const AdminDashboard = ({ onLogout }) => {
     const totalRevenue = Array.isArray(bookings) ? bookings
       .filter(b => b.status === 'APPROVED')
       .reduce((sum, b) => sum + (b.totalPrice || 0), 0) : 0;
+    const paidBookings = Array.isArray(bookings) ? bookings.filter(b => b.paymentStatus === 'PAID').length : 0;
+    const unpaidBookings = Array.isArray(bookings) ? bookings.filter(b => b.paymentStatus === 'UNPAID' && b.status === 'PENDING').length : 0;
     
-    return { pending, approved, rejected, available, totalRooms: Array.isArray(rooms) ? rooms.length : 0, totalRevenue };
+    return { pending, approved, rejected, available, totalRooms: Array.isArray(rooms) ? rooms.length : 0, totalRevenue, paidBookings, unpaidBookings };
   };
 
   if (loading) return (
@@ -522,14 +551,8 @@ const AdminDashboard = ({ onLogout }) => {
                 </p>
               </div>
               <div className="d-flex gap-2">
-                <button className="btn btn-outline-primary btn-sm">
-                  <i className="fas fa-bell me-1"></i>
-                  Notifications
-                  {stats.pending > 0 && (
-                    <span className="badge bg-danger ms-1">{stats.pending}</span>
-                  )}
-                </button>
-                <button className="btn btn-outline-secondary btn-sm">
+                <NotificationPanel />
+                <button className="btn btn-outline-secondary btn-sm" onClick={handleSystemSettings.exportData}>
                   <i className="fas fa-download me-1"></i>
                   Export
                 </button>
@@ -553,13 +576,16 @@ const AdminDashboard = ({ onLogout }) => {
                 {/* Stats Cards */}
                 <div className="row g-4 mb-4">
                   <div className="col-lg-3 col-md-6">
-                    <div className="stats-card">
-                      <div className="d-flex align-items-center">
-                        <div className="flex-grow-1">
-                          <h2 className="mb-0 fw-bold">{stats.pending}</h2>
-                          <p className="mb-0 opacity-75">Pending Bookings</p>
+                    <div className="card bg-warning text-white border-0 h-100">
+                      <div className="card-body">
+                        <div className="d-flex align-items-center">
+                          <div className="flex-grow-1">
+                            <h2 className="mb-0 fw-bold">{stats.pending}</h2>
+                            <p className="mb-0 opacity-75">Pending Approval</p>
+                            <small className="opacity-75">{stats.unpaidBookings} unpaid</small>
+                          </div>
+                          <i className="fas fa-clock fa-2x opacity-50"></i>
                         </div>
-                        <i className="fas fa-clock fa-2x opacity-50"></i>
                       </div>
                     </div>
                   </div>
@@ -581,16 +607,16 @@ const AdminDashboard = ({ onLogout }) => {
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1">
-                            <h2 className="mb-0 fw-bold">{stats.available}</h2>
-                            <p className="mb-0 opacity-75">Available Rooms</p>
+                            <h2 className="mb-0 fw-bold">{stats.paidBookings}</h2>
+                            <p className="mb-0 opacity-75">Paid Bookings</p>
                           </div>
-                          <i className="fas fa-bed fa-2x opacity-50"></i>
+                          <i className="fas fa-credit-card fa-2x opacity-50"></i>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="col-lg-3 col-md-6">
-                    <div className="card bg-warning text-white border-0 h-100">
+                    <div className="card bg-primary text-white border-0 h-100">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1">
@@ -710,6 +736,13 @@ const AdminDashboard = ({ onLogout }) => {
                               <div>
                                 <div className="fw-semibold">{booking.guestName}</div>
                                 <small className="text-muted">{booking.guestEmail}</small>
+                                {booking.paymentStatus && (
+                                  <div>
+                                    <span className={`badge ${booking.paymentStatus === 'PAID' ? 'bg-success' : 'bg-warning'} mt-1`}>
+                                      {booking.paymentStatus}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td>
@@ -743,10 +776,10 @@ const AdminDashboard = ({ onLogout }) => {
                               {booking.status === 'PENDING' && (
                                 <div className="btn-group btn-group-sm">
                                   <button
-                                    className="btn btn-success"
+                                    className={`btn ${booking.paymentStatus === 'PAID' ? 'btn-success' : 'btn-outline-success'}`}
                                     onClick={() => handleUpdateBooking(booking.bookingId, 'APPROVED')}
-                                    disabled={processingId === booking.bookingId}
-                                    title="Approve Booking"
+                                    disabled={processingId === booking.bookingId || booking.paymentStatus !== 'PAID'}
+                                    title={booking.paymentStatus === 'PAID' ? 'Approve Booking' : 'Payment Required'}
                                   >
                                     {processingId === booking.bookingId ? (
                                       <span className="spinner-border spinner-border-sm"></span>

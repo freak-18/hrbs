@@ -8,6 +8,9 @@ function BookingList() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [cancellingId, setCancellingId] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showETicketModal, setShowETicketModal] = useState(false);
 
   const fetchBookings = async () => {
     try {
@@ -186,7 +189,7 @@ function BookingList() {
   };
 
   const getStatusStyle = (status) => {
-    switch (status) {
+    switch (status?.toUpperCase()) {
       case 'PENDING': return { background: '#facc15' };
       case 'APPROVED': return { background: '#22c55e' };
       case 'REJECTED': return { background: '#ef4444' };
@@ -217,6 +220,16 @@ function BookingList() {
       .reduce((sum, b) => sum + (b.totalPrice || 0), 0);
     
     return { pending, approved, rejected, totalAmount };
+  };
+
+  const handleViewDetails = (booking) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+  };
+
+  const handleETicket = (booking) => {
+    setSelectedBooking(booking);
+    setShowETicketModal(true);
   };
 
   const handleCancel = async (bookingId) => {
@@ -479,10 +492,18 @@ function BookingList() {
                         <i className="fas fa-user me-2 text-primary"></i>
                         {booking.guestName}
                       </h5>
-                      <p className="text-muted small mb-0">
+                      <p className="text-muted small mb-1">
                         <i className="fas fa-envelope me-1"></i>
                         {booking.guestEmail || 'guest@example.com'}
                       </p>
+                      {booking.paymentStatus && (
+                        <div>
+                          <span className={`badge ${booking.paymentStatus === 'PAID' ? 'bg-success' : 'bg-warning'}`}>
+                            <i className={`fas ${booking.paymentStatus === 'PAID' ? 'fa-check' : 'fa-clock'} me-1`}></i>
+                            {booking.paymentStatus}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Hotel Image */}
@@ -571,12 +592,18 @@ function BookingList() {
                   {/* Card Footer */}
                   <div className="card-footer bg-light border-0">
                     <div className="d-flex gap-2">
-                      <button className="btn btn-outline-primary btn-sm flex-fill">
+                      <button 
+                        className="btn btn-outline-primary btn-sm flex-fill"
+                        onClick={() => handleViewDetails(booking)}
+                      >
                         <i className="fas fa-eye me-1"></i>
                         View Details
                       </button>
                       {booking.status === 'APPROVED' && (
-                        <button className="btn btn-primary btn-sm flex-fill">
+                        <button 
+                          className="btn btn-primary btn-sm flex-fill"
+                          onClick={() => handleETicket(booking)}
+                        >
                           <i className="fas fa-download me-1"></i>
                           E-Ticket
                         </button>
@@ -595,7 +622,13 @@ function BookingList() {
                           Cancel
                         </button>
                       )}
-                      {booking.status === 'REJECTED' && (
+                      {booking.status === 'REJECTED' && booking.rejectionReason === 'Payment not received within time limit' && (
+                        <small className="text-danger">
+                          <i className="fas fa-exclamation-triangle me-1"></i>
+                          Auto-cancelled: Payment timeout
+                        </small>
+                      )}
+                      {booking.status === 'REJECTED' && booking.rejectionReason !== 'Payment not received within time limit' && (
                         <button 
                           className="btn btn-danger btn-sm flex-fill"
                           onClick={() => handleCancel(booking.bookingId)}
@@ -648,6 +681,326 @@ function BookingList() {
           </div>
         )}
       </div>
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedBooking && (
+        <div className="modal fade show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="fas fa-info-circle me-2"></i>
+                  Booking Details - #{selectedBooking.bookingId}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowDetailsModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    <h6 className="fw-bold mb-3">Guest Information</h6>
+                    <div className="mb-2">
+                      <strong>Name:</strong> {selectedBooking.guestName}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Email:</strong> {selectedBooking.guestEmail}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Phone:</strong> {selectedBooking.guestPhone || 'Not provided'}
+                    </div>
+                    <div className="mb-3">
+                      <strong>Status:</strong> 
+                      <span 
+                        className="badge ms-2 px-3 py-2"
+                        style={getStatusStyle(selectedBooking.status)}
+                      >
+                        {selectedBooking.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <h6 className="fw-bold mb-3">Room Information</h6>
+                    <div className="mb-2">
+                      <strong>Room Number:</strong> {selectedBooking.room?.roomNumber || 'N/A'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Room Type:</strong> {selectedBooking.room?.roomType || 'Deluxe'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Price per Night:</strong> ₹{selectedBooking.room?.pricePerNight?.toLocaleString() || '0'}
+                    </div>
+                    <div className="mb-3">
+                      <strong>Amenities:</strong>
+                      <div className="mt-1">
+                        <span className="badge bg-light text-dark me-1">WiFi</span>
+                        <span className="badge bg-light text-dark me-1">AC</span>
+                        <span className="badge bg-light text-dark me-1">Breakfast</span>
+                        <span className="badge bg-light text-dark">Parking</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-md-6">
+                    <h6 className="fw-bold mb-3">Stay Details</h6>
+                    <div className="mb-2">
+                      <strong>Check-in:</strong> {selectedBooking.checkInDate ? new Date(selectedBooking.checkInDate).toLocaleDateString() : 'TBD'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Check-out:</strong> {selectedBooking.checkOutDate ? new Date(selectedBooking.checkOutDate).toLocaleDateString() : 'TBD'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Number of Nights:</strong> {selectedBooking.nights || 1}
+                    </div>
+                    <div className="mb-3">
+                      <strong>Booking Date:</strong> {selectedBooking.createdAt ? new Date(selectedBooking.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <h6 className="fw-bold mb-3">Payment Information</h6>
+                    <div className="mb-2">
+                      <strong>Total Amount:</strong> 
+                      <span className="h5 text-primary ms-2">₹{selectedBooking.totalPrice?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Payment Status:</strong> 
+                      <span className={`badge ms-2 ${selectedBooking.paymentStatus === 'PAID' ? 'bg-success' : 'bg-warning'}`}>
+                        {selectedBooking.paymentStatus || 'PENDING'}
+                      </span>
+                    </div>
+                    {selectedBooking.paymentMethod && (
+                      <div className="mb-2">
+                        <strong>Payment Method:</strong> {selectedBooking.paymentMethod}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {selectedBooking.specialRequests && (
+                  <div className="mt-3">
+                    <h6 className="fw-bold mb-2">Special Requests</h6>
+                    <p className="text-muted">{selectedBooking.specialRequests}</p>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowDetailsModal(false)}
+                >
+                  Close
+                </button>
+                {selectedBooking.status === 'APPROVED' && (
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      handleETicket(selectedBooking);
+                    }}
+                  >
+                    <i className="fas fa-download me-2"></i>
+                    Download E-Ticket
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* E-Ticket Modal */}
+      {showETicketModal && selectedBooking && (
+        <div className="modal fade show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">
+                  <i className="fas fa-ticket-alt me-2"></i>
+                  E-Ticket - Booking #{selectedBooking.bookingId}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close btn-close-white" 
+                  onClick={() => setShowETicketModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body" id="eticket-content">
+                <div className="text-center mb-4">
+                  <h3 className="text-primary fw-bold">Hotel Booking Confirmation</h3>
+                  <p className="text-muted">Thank you for choosing our hotel</p>
+                </div>
+                
+                <div className="row mb-4">
+                  <div className="col-md-6">
+                    <div className="card bg-light">
+                      <div className="card-body">
+                        <h6 className="card-title fw-bold">Guest Details</h6>
+                        <p className="mb-1"><strong>Name:</strong> {selectedBooking.guestName}</p>
+                        <p className="mb-1"><strong>Email:</strong> {selectedBooking.guestEmail}</p>
+                        <p className="mb-0"><strong>Booking ID:</strong> #{selectedBooking.bookingId}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="card bg-light">
+                      <div className="card-body">
+                        <h6 className="card-title fw-bold">Room Details</h6>
+                        <p className="mb-1"><strong>Room:</strong> {selectedBooking.room?.roomNumber || 'N/A'}</p>
+                        <p className="mb-1"><strong>Type:</strong> {selectedBooking.room?.roomType || 'Deluxe'}</p>
+                        <p className="mb-0"><strong>Rate:</strong> ₹{selectedBooking.room?.pricePerNight?.toLocaleString() || '0'}/night</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row mb-4">
+                  <div className="col-md-6">
+                    <div className="card bg-success text-white">
+                      <div className="card-body">
+                        <h6 className="card-title fw-bold">Check-in</h6>
+                        <p className="mb-1 h5">{selectedBooking.checkInDate ? new Date(selectedBooking.checkInDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD'}</p>
+                        <p className="mb-0">After 3:00 PM</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="card bg-danger text-white">
+                      <div className="card-body">
+                        <h6 className="card-title fw-bold">Check-out</h6>
+                        <p className="mb-1 h5">{selectedBooking.checkOutDate ? new Date(selectedBooking.checkOutDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD'}</p>
+                        <p className="mb-0">Before 11:00 AM</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card mb-4">
+                  <div className="card-body">
+                    <h6 className="card-title fw-bold">Payment Summary</h6>
+                    <div className="row">
+                      <div className="col-8">
+                        <p className="mb-1">Room Charges ({selectedBooking.nights || 1} nights)</p>
+                        <p className="mb-1">Taxes & Fees</p>
+                        <hr />
+                        <p className="mb-0 fw-bold">Total Amount</p>
+                      </div>
+                      <div className="col-4 text-end">
+                        <p className="mb-1">₹{((selectedBooking.totalPrice || 0) * 0.85).toLocaleString()}</p>
+                        <p className="mb-1">₹{((selectedBooking.totalPrice || 0) * 0.15).toLocaleString()}</p>
+                        <hr />
+                        <p className="mb-0 fw-bold h5 text-primary">₹{selectedBooking.totalPrice?.toLocaleString() || '0'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card mb-4">
+                  <div className="card-body">
+                    <h6 className="card-title fw-bold">Hotel Amenities</h6>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <ul className="list-unstyled">
+                          <li><i className="fas fa-wifi text-primary me-2"></i>Free WiFi</li>
+                          <li><i className="fas fa-snowflake text-primary me-2"></i>Air Conditioning</li>
+                          <li><i className="fas fa-utensils text-primary me-2"></i>Complimentary Breakfast</li>
+                        </ul>
+                      </div>
+                      <div className="col-md-6">
+                        <ul className="list-unstyled">
+                          <li><i className="fas fa-car text-primary me-2"></i>Free Parking</li>
+                          <li><i className="fas fa-concierge-bell text-primary me-2"></i>24/7 Room Service</li>
+                          <li><i className="fas fa-swimming-pool text-primary me-2"></i>Swimming Pool</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <div className="border p-3 bg-light">
+                    <p className="mb-2"><strong>Important:</strong> Please carry a valid ID proof during check-in</p>
+                    <p className="mb-0 text-muted">For any queries, contact us at +91-9876543210 or email support@hotel.com</p>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowETicketModal(false)}
+                >
+                  Close
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    const content = document.getElementById('eticket-content');
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                      <html>
+                        <head>
+                          <title>E-Ticket - Booking #${selectedBooking.bookingId}</title>
+                          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                          <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+                          <style>
+                            body { font-family: Arial, sans-serif; }
+                            @media print { .no-print { display: none; } }
+                          </style>
+                        </head>
+                        <body>
+                          <div class="container mt-4">
+                            ${content.innerHTML}
+                          </div>
+                        </body>
+                      </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.print();
+                  }}
+                >
+                  <i className="fas fa-print me-2"></i>
+                  Print E-Ticket
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-success"
+                  onClick={() => {
+                    const content = document.getElementById('eticket-content');
+                    const blob = new Blob([`
+                      <html>
+                        <head>
+                          <title>E-Ticket - Booking #${selectedBooking.bookingId}</title>
+                          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                          <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+                        </head>
+                        <body>
+                          <div class="container mt-4">
+                            ${content.innerHTML}
+                          </div>
+                        </body>
+                      </html>
+                    `], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `eticket-${selectedBooking.bookingId}.html`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <i className="fas fa-download me-2"></i>
+                  Download E-Ticket
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

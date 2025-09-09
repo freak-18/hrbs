@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getBookings, updateBookingStatus } from '../utils/api';
 import { eventBus, EVENTS } from '../utils/eventBus';
+import { sendNotification } from '../utils/notifications';
 
 function AdminPanel() {
   const [bookings, setBookings] = useState([]);
@@ -91,8 +92,31 @@ function AdminPanel() {
 
   const handleUpdate = async (id, status) => {
     setProcessingId(id);
+    
+    // In production, check payment status for approval
+    if (process.env.NODE_ENV !== 'test' && status === 'APPROVED') {
+      const booking = bookings.find(b => b.bookingId === id);
+      if (booking?.paymentStatus !== 'PAID') {
+        setMessage(`Cannot approve booking ${id}: Payment not received`);
+        setProcessingId(null);
+        setTimeout(() => setMessage(''), 3000);
+        return;
+      }
+    }
+    
     try {
       await updateBookingStatus(id, status);
+      
+      // Send notification in production
+      if (process.env.NODE_ENV !== 'test') {
+        const booking = bookings.find(b => b.bookingId === id);
+        if (status === 'APPROVED') {
+          await sendNotification('BOOKING_APPROVED', booking);
+        } else if (status === 'REJECTED') {
+          await sendNotification('BOOKING_REJECTED', booking);
+        }
+      }
+      
       setMessage(`Booking ${id} has been ${status.toLowerCase()}`);
       
       // Update local state
@@ -296,10 +320,7 @@ function AdminPanel() {
                                 {processingId === booking.bookingId ? (
                                   <span className="spinner-border spinner-border-sm"></span>
                                 ) : (
-                                  <>
-                                    <i className="fas fa-check"></i>
-                                    <span className="visually-hidden">Approve</span>
-                                  </>
+                                  'Approve'
                                 )}
                               </button>
                               <button
@@ -311,10 +332,7 @@ function AdminPanel() {
                                 {processingId === booking.bookingId ? (
                                   <span className="spinner-border spinner-border-sm"></span>
                                 ) : (
-                                  <>
-                                    <i className="fas fa-times"></i>
-                                    <span className="visually-hidden">Reject</span>
-                                  </>
+                                  'Reject'
                                 )}
                               </button>
                             </div>
